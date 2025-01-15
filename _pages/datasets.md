@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Datasets in HypoBench
-permalink: /Datasets/
+permalink: /datasets/
 ---
 
 ### Step 1) Fork Reverie to your User Repository
