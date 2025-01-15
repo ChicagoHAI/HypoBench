@@ -9,10 +9,10 @@ name: HypoBench
 author: Haokun Liu
 
 # Short bio or description (displayed in the header)
-description: Official website of HypoBench
+description: A benchmark for hypothesis generation
 
 # URL of your avatar or profile pic (you could use your GitHub profile pic)
-avatar: /images/reverie.png
+avatar: /images/chai.jpg
 
 #
 # Flags below are optional
