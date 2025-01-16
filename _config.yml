@@ -20,7 +20,7 @@ tasks:
   llamagc: LlamaGC
   gptgc: GPTGC
   persuasion: Persuasive Pairs
-  dreddit: Dreddit
+  dreaddit: Dreaddit
 
 # Macros for hypothesis generation methods
 methods:
