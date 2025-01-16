@@ -12,18 +12,29 @@ Below is the leaderboard showing accuracy scores on the held-out OOD datasets. L
 function toggleModel(model) {
   document.getElementById("gpt").style.display = (model === "gpt") ? "" : "none";
   document.getElementById("llama").style.display = (model === "llama") ? "" : "none";
+
+  const gptLink = document.getElementById("gpt-link");
+  const llamaLink = document.getElementById("llama-link");
+
+  if (model === "gpt") {
+    gptLink.style.fontWeight = "bold";
+    llamaLink.style.fontWeight = "normal";
+  } else {
+    gptLink.style.fontWeight = "normal";
+    llamaLink.style.fontWeight = "bold";
+  }
 }
 </script>
 
 <p>
-  <a href="#" onclick="toggleModel('gpt'); return false;" style="font-weight: bold;">GPT-4-MINI</a> | 
-  <a href="#" onclick="toggleModel('llama'); return false;">Llama-70B-I</a>
+  <a id="gpt-link" href="#" onclick="toggleModel('gpt'); return false;" style="font-weight: bold;">GPT-4-MINI</a> |
+  <a id="llama-link" href="#" onclick="toggleModel('llama'); return false;">Llama-70B-I</a>
 </p>
 
 <table style="width: 95%; margin: auto; border-collapse: collapse; text-align: center; font-size: 0.95em;">
   <thead>
     <tr style="border-bottom: 2px solid black;">
-      <th>Model</th>
+      <!-- Removed Model column -->
       <th>Methods</th>
       <th>\deceptive</th>
       <th>\llamagc</th>
@@ -32,10 +43,10 @@ function toggleModel(model) {
       <th>\dreaddit</th>
     </tr>
   </thead>
+
+  <!-- GPT-4 MINI Section -->
   <tbody id="gpt">
-    <!-- GPT-4 MINI Section -->
     <tr>
-      <td rowspan="13" style="font-weight: bold;">GPT-4 MINI</td>
       <td colspan="6" style="font-weight: bold;">No hypothesis</td>
     </tr>
     <tr>
@@ -131,10 +142,10 @@ function toggleModel(model) {
       <td><b>79.24</b></td>
     </tr>
   </tbody>
+
+  <!-- Llama 70B-I Section -->
   <tbody id="llama" style="display: none;">
-    <!-- Llama 70B-I Section -->
     <tr>
-      <td rowspan="13" style="font-weight: bold;">Llama 70B-I</td>
       <td colspan="6" style="font-weight: bold;">No hypothesis</td>
     </tr>
     <tr>
