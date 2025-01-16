@@ -8,6 +8,18 @@ permalink: /leaderboard/
 
 Below is the leaderboard showing accuracy scores on the held-out OOD datasets. Literature + Data outperforms all other methods in every model and task configuration. The bolded numbers outperform the few-shot method (*p < 0.05*), as determined by a paired t-test using five random seeds.
 
+<script>
+function toggleModel(model) {
+  document.getElementById("gpt").style.display = (model === "gpt") ? "" : "none";
+  document.getElementById("llama").style.display = (model === "llama") ? "" : "none";
+}
+</script>
+
+<p>
+  <a href="#" onclick="toggleModel('gpt'); return false;" style="font-weight: bold;">GPT-4-MINI</a> | 
+  <a href="#" onclick="toggleModel('llama'); return false;">Llama-70B-I</a>
+</p>
+
 <table style="width: 95%; margin: auto; border-collapse: collapse; text-align: center; font-size: 0.95em;">
   <thead>
     <tr style="border-bottom: 2px solid black;">
@@ -20,7 +32,7 @@ Below is the leaderboard showing accuracy scores on the held-out OOD datasets. L
       <th>\dreaddit</th>
     </tr>
   </thead>
-  <tbody>
+  <tbody id="gpt">
     <!-- GPT-4 MINI Section -->
     <tr>
       <td rowspan="13" style="font-weight: bold;">GPT-4 MINI</td>
@@ -118,6 +130,8 @@ Below is the leaderboard showing accuracy scores on the held-out OOD datasets. L
       <td>89.52</td>
       <td><b>79.24</b></td>
     </tr>
+  </tbody>
+  <tbody id="llama" style="display: none;">
     <!-- Llama 70B-I Section -->
     <tr>
       <td rowspan="13" style="font-weight: bold;">Llama 70B-I</td>
