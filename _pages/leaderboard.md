@@ -33,11 +33,11 @@ function toggleModel(model) {
   <thead>
     <tr style="border-bottom: 2px solid black;">
       <th>Methods</th>
-      <th>site.tasks.deceptive</th>
-      <th>site.tasks.llamagc</th>
-      <th>site.tasks.gptgc</th>
-      <th>site.tasks.persuasion</th>
-      <th>site.tasks.dreaddit</th>
+      <th>{{ site.tasks.deceptive }}</th>
+      <th>{{ site.tasks.llamagc }}</th>
+      <th>{{ site.tasks.gptgc }}</th>
+      <th>{{ site.tasks.persuasion }}</th>
+      <th>{{ site.tasks.dreaddit }}</th>
     </tr>
   </thead>
 
@@ -77,7 +77,7 @@ function toggleModel(model) {
       <td colspan="6" style="font-weight: bold;">Literature-based</td>
     </tr>
     <tr>
-      <td>site.methods.paperonly</td>
+      <td>{{ site.methods.paperonly }}</td>
       <td>59.22</td>
       <td>49.00</td>
       <td>54.00</td>
@@ -85,7 +85,7 @@ function toggleModel(model) {
       <td>67.68</td>
     </tr>
     <tr>
-      <td>site.methods.hyperwrite</td>
+      <td>{{ site.methods.hyperwrite }}</td>
       <td>61.63</td>
       <td>49.67</td>
       <td>52.67</td>
@@ -93,7 +93,7 @@ function toggleModel(model) {
       <td>68.76</td>
     </tr>
     <tr>
-      <td>site.methods.notebooklm</td>
+      <td>{{ site.methods.notebooklm }}</td>
       <td>53.03</td>
       <td>49.33</td>
       <td>51.67</td>
@@ -104,7 +104,7 @@ function toggleModel(model) {
       <td colspan="6" style="font-weight: bold;">Data-driven</td>
     </tr>
     <tr>
-      <td>site.methods.hypogenic</td>
+      <td>{{ site.methods.hypogenic }}</td>
       <td>75.22</td>
       <td>81.67</td>
       <td>68.56</td>
@@ -115,7 +115,7 @@ function toggleModel(model) {
       <td colspan="6" style="font-weight: bold;">Literature + Data (This work)</td>
     </tr>
     <tr>
-      <td>site.methods.refinemethod</td>
+      <td>{{ site.methods.refinemethod }}</td>
       <td><b>77.78</b></td>
       <td>55.33</td>
       <td>63.33</td>
@@ -123,7 +123,7 @@ function toggleModel(model) {
       <td>78.04</td>
     </tr>
     <tr>
-      <td>Literature ∪ site.methods.hypogenic</td>
+      <td>Literature ∪ {{ site.methods.hypogenic }}</td>
       <td>72.41</td>
       <td><b>83.00</b></td>
       <td><b>69.22</b></td>
@@ -131,7 +131,7 @@ function toggleModel(model) {
       <td>78.20</td>
     </tr>
     <tr>
-      <td>Literature ∪ site.methods.refinemethod</td>
+      <td>Literature ∪ {{ site.methods.refinemethod }}</td>
       <td>77.19</td>
       <td>55.33</td>
       <td>63.00</td>
@@ -176,7 +176,7 @@ function toggleModel(model) {
       <td colspan="6" style="font-weight: bold;">Literature-based</td>
     </tr>
     <tr>
-      <td>site.methods.paperonly</td>
+      <td>{{ site.methods.paperonly }}</td>
       <td>64.25</td>
       <td>50.00</td>
       <td>49.67</td>
@@ -184,7 +184,7 @@ function toggleModel(model) {
       <td>66.04</td>
     </tr>
     <tr>
-      <td>site.methods.hyperwrite</td>
+      <td>{{ site.methods.hyperwrite }}</td>
       <td>58.62</td>
       <td>50.67</td>
       <td>54.00</td>
@@ -192,7 +192,7 @@ function toggleModel(model) {
       <td>74.40</td>
     </tr>
     <tr>
-      <td>site.methods.notebooklm</td>
+      <td>{{ site.methods.notebooklm }}</td>
       <td>57.81</td>
       <td>49.33</td>
       <td>50.67</td>
@@ -203,7 +203,7 @@ function toggleModel(model) {
       <td colspan="6" style="font-weight: bold;">Data-driven</td>
     </tr>
     <tr>
-      <td>site.methods.hypogenic</td>
+      <td>{{ site.methods.hypogenic }}</td>
       <td>62.06</td>
       <td>78.67</td>
       <td>78.00</td>
@@ -214,7 +214,7 @@ function toggleModel(model) {
       <td colspan="6" style="font-weight: bold;">Literature + Data (This work)</td>
     </tr>
     <tr>
-      <td>site.methods.refinemethod</td>
+      <td>{{ site.methods.refinemethod }}</td>
       <td>72.16</td>
       <td>67.00</td>
       <td>66.67</td>
@@ -222,7 +222,7 @@ function toggleModel(model) {
       <td><b>78.92</b></td>
     </tr>
     <tr>
-      <td>Literature ∪ site.methods.hypogenic</td>
+      <td>Literature ∪ {{ site.methods.hypogenic }}</td>
       <td><b>73.72</b></td>
       <td><b>81.33</b></td>
       <td><b>78.67</b></td>
@@ -230,7 +230,7 @@ function toggleModel(model) {
       <td>72.56</td>
     </tr>
     <tr>
-      <td>Literature ∪ site.methods.refinemethod</td>
+      <td>Literature ∪ {{ site.methods.refinemethod }}</td>
       <td>71.75</td>
       <td>66.67</td>
       <td>65.67</td>
