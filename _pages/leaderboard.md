@@ -25,7 +25,7 @@ function toggleModel(model) {
 </script>
 
 <p>
-  <a id="gpt-link" href="#" onclick="toggleModel('gpt'); return false;" style="font-weight: bold;">GPT-4o-MINI</a> |
+  <a id="gpt-link" href="#" onclick="toggleModel('gpt'); return false;" style="font-weight: bold;">GPT-4o-mini</a> |
   <a id="llama-link" href="#" onclick="toggleModel('llama'); return false;">Llama-3.1-70B-Instruct</a>
 </p>
 
@@ -112,7 +112,7 @@ function toggleModel(model) {
       <td>76.56</td>
     </tr>
     <tr>
-      <td colspan="6" style="font-weight: bold;">Literature + Data (This work)</td>
+      <td colspan="6" style="font-weight: bold;">Literature + Data</td>
     </tr>
     <tr>
       <td>{{ site.methods.refinemethod }}</td>
@@ -211,7 +211,7 @@ function toggleModel(model) {
       <td>75.48</td>
     </tr>
     <tr>
-      <td colspan="6" style="font-weight: bold;">Literature + Data (This work)</td>
+      <td colspan="6" style="font-weight: bold;">Literature + Data</td>
     </tr>
     <tr>
       <td>{{ site.methods.refinemethod }}</td>
