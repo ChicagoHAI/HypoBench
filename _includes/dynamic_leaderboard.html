@@ -344,7 +344,7 @@ function loadCSV(file, callback) {
     complete: function(results) {
       // Insert 'Model' from the file path, e.g. 'GPT', 'Llama', etc.
       results.data.forEach(row => {
-        row.Model = file.split('_')[0].replace('/assets/data/', '');
+        row.Model = file.split('_')[0].replace('{{ site.baseurl }}/assets/data/', '');
       });
       callback(results.data);
     }
