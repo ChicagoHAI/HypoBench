@@ -1,122 +1,121 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>HypoBench Leaderboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
-  <style>
-    table {
-      width: 100%;
-    }
-    .details {
-      margin-top: 1em;
-    }
-  </style>
-</head>
-<body>
-  <h1>HypoBench Leaderboard</h1>
-  <table id="leaderboard" class="display"></table>
+<!-- _includes/dynamic_leaderboard.html -->
 
-  <script>
-    const csvFiles = [
-      'assets/data/GPT_combined_results_synth.csv',
-      'assets/data/Llama_combined_results_synth.csv',
-      'assets/data/Qwen_combined_results_synth.csv',
-      'assets/data/DeepSeek_combined_results_synth.csv'
-    ];
+<!-- DataTables + PapaParse + jQuery from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
 
-    const allData = [];
+<h2>HypoBench Leaderboard</h2>
 
-    function loadCSV(file, callback) {
-      Papa.parse(file, {
-        download: true,
-        header: true,
-        complete: function(results) {
-          results.data.forEach(row => {
-            row.Model = file.split('_')[0];
-          });
-          callback(results.data);
+<table id="leaderboard" class="display"></table>
+
+<script>
+  // Update these paths to match your actual CSV locations
+  const csvFiles = [
+    '/assets/data/GPT_combined_results_synth.csv',
+    '/assets/data/Llama_combined_results_synth.csv',
+    '/assets/data/Qwen_combined_results_synth.csv',
+    '/assets/data/DeepSeek_combined_results_synth.csv'
+  ];
+
+  const allData = [];
+
+  // Parse one CSV
+  function loadCSV(file, callback) {
+    Papa.parse(file, {
+      download: true,
+      header: true,
+      complete: function(results) {
+        // Insert a 'Model' field from the filename
+        results.data.forEach(row => {
+          row.Model = file.split('_')[0].replace('/assets/data/', '');
+        });
+        callback(results.data);
+      }
+    });
+  }
+
+  // Aggregate by (Model, Method)
+  function aggregateData(data) {
+    const map = new Map();
+    data.forEach(row => {
+      const key = row.Model + '||' + row.Method;
+      if (!map.has(key)) {
+        map.set(key, { Model: row.Model, Method: row.Method, Accuracy: [], F1: [], Details: [] });
+      }
+      const entry = map.get(key);
+      entry.Accuracy.push(parseFloat(row.Accuracy));
+      entry.F1.push(parseFloat(row.F1));
+      entry.Details.push({
+        Task: row.Task,
+        Accuracy: row.Accuracy,
+        F1: row.F1
+      });
+    });
+
+    // Convert map to array
+    return Array.from(map.values()).map(e => ({
+      Model: e.Model,
+      Method: e.Method,
+      AvgAccuracy: (e.Accuracy.reduce((a, b) => a + b, 0) / e.Accuracy.length).toFixed(2),
+      AvgF1: (e.F1.reduce((a, b) => a + b, 0) / e.F1.length).toFixed(2),
+      Details: e.Details
+    }));
+  }
+
+  // Render the DataTable
+  function renderTable(data) {
+    const tableData = data.map(row => [
+      row.Model,
+      row.Method,
+      row.AvgAccuracy,
+      row.AvgF1,
+      '<button class=\"details-btn\">View</button>',
+      JSON.stringify(row.Details)
+    ]);
+
+    const table = $('#leaderboard').DataTable({
+      data: tableData,
+      columns: [
+        { title: 'Model' },
+        { title: 'Method' },
+        { title: 'Avg Accuracy' },
+        { title: 'Avg F1' },
+        { title: 'Details' },
+        { title: 'HiddenDetails', visible: false }
+      ]
+    });
+
+    // Expand to show per-task results
+    $('#leaderboard tbody').on('click', 'button.details-btn', function() {
+      const row = table.row($(this).parents('tr'));
+      const details = JSON.parse(row.data()[5]);
+      let html = '<div class=\"details\"><strong>Per-Task Results:</strong><ul>';
+      details.forEach(d => {
+        html += `<li><strong>${d.Task}</strong>:
+                    Accuracy=${d.Accuracy}, F1=${d.F1}</li>`;
+      });
+      html += '</ul></div>';
+      $(this).parent().append(html);
+      $(this).remove();
+    });
+  }
+
+  // Initialization
+  function initLeaderboard() {
+    let loadedCount = 0;
+    csvFiles.forEach(file => {
+      loadCSV(file, data => {
+        allData.push(...data);
+        loadedCount++;
+        if (loadedCount === csvFiles.length) {
+          renderTable(aggregateData(allData));
         }
       });
-    }
+    });
+  }
 
-    function aggregateData(data) {
-      const map = new Map();
-      data.forEach(row => {
-        const key = row.Model + '||' + row.Method;
-        if (!map.has(key)) {
-          map.set(key, { Model: row.Model, Method: row.Method, Accuracy: [], F1: [], Details: [] });
-        }
-        const entry = map.get(key);
-        entry.Accuracy.push(parseFloat(row.Accuracy));
-        entry.F1.push(parseFloat(row.F1));
-        entry.Details.push({ Task: row.Task, Accuracy: row.Accuracy, F1: row.F1 });
-      });
-
-      return Array.from(map.values()).map(e => {
-        return {
-          Model: e.Model,
-          Method: e.Method,
-          AvgAccuracy: (e.Accuracy.reduce((a, b) => a + b, 0) / e.Accuracy.length).toFixed(2),
-          AvgF1: (e.F1.reduce((a, b) => a + b, 0) / e.F1.length).toFixed(2),
-          Details: e.Details
-        };
-      });
-    }
-
-    function renderTable(data) {
-      const tableData = data.map(row => [
-        row.Model,
-        row.Method,
-        row.AvgAccuracy,
-        row.AvgF1,
-        '<button class="details-btn">View</button>',
-        JSON.stringify(row.Details)
-      ]);
-
-      const table = $('#leaderboard').DataTable({
-        data: tableData,
-        columns: [
-          { title: "Model" },
-          { title: "Method" },
-          { title: "Avg Accuracy" },
-          { title: "Avg F1" },
-          { title: "Details" },
-          { title: "HiddenDetails", visible: false }
-        ]
-      });
-
-      $('#leaderboard tbody').on('click', 'button.details-btn', function() {
-        const row = table.row($(this).parents('tr'));
-        const details = JSON.parse(row.data()[5]);
-        let html = '<div class="details"><strong>Per-Task Results:</strong><ul>';
-        details.forEach(d => {
-          html += `<li><strong>${d.Task}</strong>: Accuracy=${d.Accuracy}, F1=${d.F1}</li>`;
-        });
-        html += '</ul></div>';
-        $(this).parent().append(html);
-        $(this).remove();
-      });
-    }
-
-    function initLeaderboard() {
-      let loaded = 0;
-      csvFiles.forEach(file => {
-        loadCSV(file, data => {
-          allData.push(...data);
-          loaded++;
-          if (loaded === csvFiles.length) {
-            const aggregated = aggregateData(allData);
-            renderTable(aggregated);
-          }
-        });
-      });
-    }
-
-    initLeaderboard();
-  </script>
-</body>
-</html>
+  // Start
+  initLeaderboard();
+</script>
