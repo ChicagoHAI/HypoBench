@@ -24,9 +24,17 @@
   .details {
     margin-top: 1em;
   }
+  /* Optional: a simple hidden class for toggling display. */
+  .hidden {
+    display: none;
+  }
 </style>
 
 <h2>HypoBench Leaderboard</h2>
+
+<!-- Button to collapse/expand the entire task selector -->
+<button id="toggleTaskSelectorBtn" style="margin-bottom: 1em;">Hide Task Selection</button>
+
 <p>Select tasks below to filter the aggregated results in real time:</p>
 
 <!-- Container for nested checkboxes -->
@@ -36,11 +44,13 @@
 <table id="leaderboard" class="display"></table>
 
 <script>
-// 1) Define your multi-level categories object.
-//    EXACTLY match the Task values from your CSVs (with underscores, not slashes).
-// If you want to remove 'All', you can do that.
+/**************************************************
+ * 1) Define your multi-level categories object.
+ *    EXACTLY match the Task values in your CSVs.
+ *    Now tasks use underscores, not slashes.
+ **************************************************/
 const categories = {
-  All: null,  // Means no filtering
+  All: null,  // Means no filtering in theory, but we skip in UI
   admission: {
     "level 1": [
       "admission_level_1_base"
@@ -184,9 +194,10 @@ const categories = {
   }
 };
 
-// 2) CSV file paths (you can add more or rename them as needed).
-//    Adjust these paths so they match your real GitHub Pages structure.
-//    We use relative_url so it includes baseurl if necessary
+/**************************************************
+ * 2) CSV file paths.
+ *    Adjust for your GitHub Pages structure.
+ **************************************************/
 const csvFiles = [
   "{{ '/assets/data/GPT_combined_results_synth.csv' | relative_url }}",
   "{{ '/assets/data/Llama_combined_results_synth.csv' | relative_url }}",
@@ -198,6 +209,121 @@ let allData = []; // will store rows from all CSVs
 let table = null; // DataTables instance
 
 //------------------------------------------------------------
+// (OPTIONAL) 3) Pretty names for tasks / methods / models
+//------------------------------------------------------------
+// If you only want to rename certain tasks or methods, define them here.
+// The aggregator will keep the original keys to filter, but show these.
+
+const renameTask = {
+  // Admission tasks
+  "admission_level_1_base": "College Admission Base (Level 1)",
+  "admission_level_2_depth_2": "College Admission Depth 2 (Level 2)",
+  "admission_level_2_distractor_3": "College Admission Distractor 3 (Level 2)",
+  "admission_level_2_noise_10": "College Admission Noise 10% (Level 2)",
+  "admission_level_2_size_5": "College Admission Num. Features: 5 (Level 2)",
+  "admission_level_3_depth_3": "College Admission Depth 3 (Level 3)",
+  "admission_level_3_distractor_6": "College Admission Distractor 6 (Level 3)",
+  "admission_level_3_noise_20": "College Admission Noise 20% (Level 3)",
+  "admission_level_3_size_10": "College Admission Num. Features: 10 (Level 3)",
+  "admission_level_4_depth_4": "College Admission Depth 4 (Level 4)",
+  "admission_level_4_distractor_10": "College Admission Distractor 10 (Level 4)",
+  "admission_level_4_noise_30": "College Admission Noise 30% (Level 4)",
+  "admission_level_4_size_15": "College Admission Num. Features: 15 (Level 4)",
+
+  // Counterintuitive Admission tasks
+  "admission_adv_level_1_base": "Counterintuitive Admission Base (Level 1)",
+  "admission_adv_level_2_depth_2": "Counterintuitive Admission Depth 2 (Level 2)",
+  "admission_adv_level_2_distractor_3": "Counterintuitive Admission Distractor 3 (Level 2)",
+  "admission_adv_level_2_noise_10": "Counterintuitive Admission Noise 10% (Level 2)",
+  "admission_adv_level_2_size_5": "Counterintuitive Admission Num. Features: 5 (Level 2)",
+  "admission_adv_level_3_depth_3": "Counterintuitive Admission Depth 3 (Level 3)",
+  "admission_adv_level_3_distractor_6": "Counterintuitive Admission Distractor 6 (Level 3)",
+  "admission_adv_level_3_noise_20": "Counterintuitive Admission Noise 20% (Level 3)",
+  "admission_adv_level_3_size_10": "Counterintuitive Admission Num. Features: 10 (Level 3)",
+  "admission_adv_level_4_depth_4": "Counterintuitive Admission Depth 4 (Level 4)",
+  "admission_adv_level_4_distractor_10": "Counterintuitive Admission Distractor 10 (Level 4)",
+  "admission_adv_level_4_noise_30": "Counterintuitive Admission Noise 30% (Level 4)",
+  "admission_adv_level_4_size_15": "Counterintuitive Admission Num. Features: 15 (Level 4)",
+
+  // Election tasks
+  "election_level0": "Presidential Election Level 0",
+  "election_level0_nosubtlety": "Presidential Election Level 0 (No Subtlety)",
+  "election_level1": "Presidential Election Level 1",
+  "election_level1_nosubtlety": "Presidential Election Level 1 (No Subtlety)",
+  "election_level2": "Presidential Election Level 2",
+  "election_level2_nosubtlety": "Presidential Election Level 2 (No Subtlety)",
+  "election_level3": "Presidential Election Level 3",
+  "election_level3_nosubtlety": "Presidential Election Level 3 (No Subtlety)",
+  "election_level4": "Presidential Election Level 4",
+  "election_level4_nosubtlety": "Presidential Election Level 4 (No Subtlety)",
+  "election_level5": "Presidential Election Level 5",
+  "election_level5_nosubtlety": "Presidential Election Level 5 (No Subtlety)",
+  "election_controlled_5_0_0": "Presidential Election Controlled (Num. Features: 5, Noise: 0%, Dropout: 0%)",
+  "election_controlled_10_0_0": "Presidential Election Controlled (Num. Features: 10, Noise: 0%, Dropout: 0%)",
+  "election_controlled_15_0_0": "Presidential Election Controlled (Num. Features: 15, Noise: 0%, Dropout: 0%)",
+  "election_controlled_20_0_0": "Presidential Election Controlled (Num. Features: 20, Noise: 0%, Dropout: 0%)",
+  "election_controlled_20_0.1_0": "Presidential Election Controlled (Num. Features: 20, Noise: 10%, Dropout: 0%)",
+  "election_controlled_20_0.2_0": "Presidential Election Controlled (Num. Features: 20, Noise: 20%, Dropout: 0%)",
+  "election_controlled_20_0.3_0": "Presidential Election Controlled (Num. Features: 20, Noise: 30%, Dropout: 0%)",
+  "election_controlled_20_0_0.1": "Presidential Election Controlled (Num. Features: 20, Noise: 0%, Dropout: 10%)",
+  "election_controlled_20_0_0.2": "Presidential Election Controlled (Num. Features: 20, Noise: 0%, Dropout: 20%)",
+  "election_controlled_20_0_0.3": "Presidential Election Controlled (Num. Features: 20, Noise: 0%, Dropout: 30%)",
+  "election_controlled_20_0.1_0.1": "Presidential Election Controlled (Num. Features: 20, Noise: 10%, Dropout: 10%)",
+  "election_controlled_20_0.2_0.2": "Presidential Election Controlled (Num. Features: 20, Noise: 20%, Dropout: 20%)",
+  "election_controlled_20_0.3_0.3": "Presidential Election Controlled (Num. Features: 20, Noise: 30%, Dropout: 30%)",
+  "election_counterfactual_normal": "Presidential Election Counterfactual (Normal)",
+  "election_counterfactual_counterfactual": "Presidential Election Counterfactual",
+
+  // Preference tasks
+  "preference_level0": "Personality Prediction Level 0",
+  "preference_level0_nosubtlety": "Personality Prediction Level 0 (No Subtlety)",
+  "preference_level1": "Personality Prediction Level 1",
+  "preference_level1_nosubtlety": "Personality Prediction Level 1 (No Subtlety)",
+  "preference_level2": "Personality Prediction Level 2",
+  "preference_level2_nosubtlety": "Personality Prediction Level 2 (No Subtlety)",
+  "preference_level3": "Personality Prediction Level 3",
+  "preference_level3_nosubtlety": "Personality Prediction Level 3 (No Subtlety)",
+  "preference_level4": "Personality Prediction Level 4",
+  "preference_level4_nosubtlety": "Personality Prediction Level 4 (No Subtlety)",
+  "preference_level5": "Personality Prediction Level 5",
+  "preference_level5_nosubtlety": "Personality Prediction Level 5 (No Subtlety)",
+  "preference_controlled_5_0_0": "Personality Prediction Controlled (Num. Features: 5, Noise: 0%, Dropout: 0%)",
+  "preference_controlled_10_0_0": "Personality Prediction Controlled (Num. Features: 10, Noise: 0%, Dropout: 0%)",
+  "preference_controlled_15_0_0": "Personality Prediction Controlled (Num. Features: 15, Noise: 0%, Dropout: 0%)",
+  "preference_controlled_20_0_0": "Personality Prediction Controlled (Num. Features: 20, Noise: 0%, Dropout: 0%)",
+  "preference_controlled_20_0.1_0": "Personality Prediction Controlled (Num. Features: 20, Noise: 10%, Dropout: 0%)",
+  "preference_controlled_20_0.2_0": "Personality Prediction Controlled (Num. Features: 20, Noise: 20%, Dropout: 0%)",
+  "preference_controlled_20_0.3_0": "Personality Prediction Controlled (Num. Features: 20, Noise: 30%, Dropout: 0%)",
+  "preference_controlled_20_0_0.1": "Personality Prediction Controlled (Num. Features: 20, Noise: 0%, Dropout: 10%)",
+  "preference_controlled_20_0_0.2": "Personality Prediction Controlled (Num. Features: 20, Noise: 0%, Dropout: 20%)",
+  "preference_controlled_20_0_0.3": "Personality Prediction Controlled (Num. Features: 20, Noise: 0%, Dropout: 30%)",
+  "preference_controlled_20_0.1_0.1": "Personality Prediction Controlled (Num. Features: 20, Noise: 10%, Dropout: 10%)",
+  "preference_controlled_20_0.2_0.2": "Personality Prediction Controlled (Num. Features: 20, Noise: 20%, Dropout: 20%)",
+  "preference_controlled_20_0.3_0.3": "Personality Prediction Controlled (Num. Features: 20, Noise: 30%, Dropout: 30%)",
+
+  // Shoe tasks
+  "shoe": "Shoe Sales Base",
+  "shoe_two_level_simple": "Shoe Sales Two-Level Simple",
+  "shoe_two_level_hard": "Shoe Sales Two-Level Hard"
+};
+
+const renameMethod = {
+  "Zero-shot Inference": "Zero-shot Inference",
+  "Few-shot Inference": "Few-shot Inference",
+  "Zero-shot Generation": "Zero-shot Generation",
+  "\\ioprompt": "IO Prompting",
+  "\\iorefine": "Iterative Refinement",
+  "\\hypogenic": "HypoGeniC"
+};
+
+const renameModel = {
+  "GPT": "GPT-4o-mini",
+  "Llama": "Llama-3.1-70B-Instruct",
+  "Qwen": "Qwen-2.5-72B-Instruct",
+  "DeepSeek": "DeepSeek/DeepSeek-R1-Distill-Llama-70B-local"
+};
+
+//------------------------------------------------------------
 // BUILD THE NESTED CHECKBOX UI
 //------------------------------------------------------------
 function buildNestedUI() {
@@ -206,8 +332,7 @@ function buildNestedUI() {
 
   // Iterate top-level categories
   for (const topCat in categories) {
-    // Skip or handle 'All' if you want it special.
-    if (topCat === 'All') continue;
+    if (topCat === 'All') continue; // skip if you want
 
     const subLevels = categories[topCat];
 
@@ -220,6 +345,9 @@ function buildNestedUI() {
     const topCheckbox = document.createElement('input');
     topCheckbox.type = 'checkbox';
     topCheckbox.value = topCat;
+    // Default: check top-level to select all tasks
+    topCheckbox.checked = true;
+
     topLabel.appendChild(topCheckbox);
     topLabel.appendChild(document.createTextNode(' ' + topCat));
     topDiv.appendChild(topLabel);
@@ -228,7 +356,7 @@ function buildNestedUI() {
     const subContainer = document.createElement('div');
     subContainer.style.marginLeft = '1em';
 
-    // Each sub-level (e.g., 'level 1', 'level 2')
+    // Each sub-level
     if (subLevels && typeof subLevels === 'object') {
       for (const levelName in subLevels) {
         const tasks = subLevels[levelName];
@@ -241,6 +369,8 @@ function buildNestedUI() {
         const levelCheckbox = document.createElement('input');
         levelCheckbox.type = 'checkbox';
         levelCheckbox.value = levelName;
+        // default check
+        levelCheckbox.checked = true;
 
         levelLabel.appendChild(levelCheckbox);
         levelLabel.appendChild(document.createTextNode(' ' + levelName));
@@ -258,8 +388,14 @@ function buildNestedUI() {
             const tcb = document.createElement('input');
             tcb.type = 'checkbox';
             tcb.value = taskName;
+            // default check
+            tcb.checked = true;
+
+            // display name can remain raw or you can do renameTask[taskName] ?? taskName
+            const displayName = renameTask[taskName] || taskName;
+
             taskLabel.appendChild(tcb);
-            taskLabel.appendChild(document.createTextNode(' ' + taskName));
+            taskLabel.appendChild(document.createTextNode(' ' + displayName));
             tasksDiv.appendChild(taskLabel);
 
             // If user toggles an individual task
@@ -332,17 +468,15 @@ function getSelectedTasks() {
 }
 
 //------------------------------------------------------------
-// 3) LOAD CSV FILES + DATATABLE
+// 4) LOAD CSV FILES + DATATABLE
 //------------------------------------------------------------
-
-// Parse a single CSV with PapaParse
 function loadCSV(file, callback) {
   Papa.parse(file, {
     download: true,
     header: true,
     skipEmptyLines: true,
     complete: function(results) {
-      // Insert 'Model' from the file path, e.g. 'GPT', 'Llama', etc.
+      // Insert 'Model' from filename, e.g. 'GPT', 'Llama'
       results.data.forEach(row => {
         row.Model = file.split('_')[0].replace('{{ site.baseurl }}/assets/data/', '');
       });
@@ -351,17 +485,27 @@ function loadCSV(file, callback) {
   });
 }
 
-// Filter data by selected tasks
 function filterByTasks(data, selectedTasks) {
   if (!selectedTasks || selectedTasks.length === 0) {
-    // Return an empty array, or return data to show all tasks if none are selected.
+    // If everything is checked by default, no tasks => maybe show all?
+    // But user wants an empty => no tasks. Let's keep this or revert.
     return [];
   }
   const allowed = new Set(selectedTasks);
   return data.filter(row => allowed.has(row.Task));
 }
 
-// Aggregate by (Model, Method)
+// (OPTIONAL) rename method or model for display
+function prettyMethod(method) {
+  return renameMethod[method] || method;
+}
+function prettyModel(model) {
+  return renameModel[model] || model;
+}
+function prettyTask(task) {
+  return renameTask[task] || task;
+}
+
 function aggregateData(rows) {
   const map = new Map();
   rows.forEach(r => {
@@ -394,23 +538,29 @@ function aggregateData(rows) {
   });
 }
 
-// Render or re-render the DataTable
+// We declare table up top
+// Reuse it in renderTable
+
 function renderTable(data) {
-  // If we already have a table, destroy it
   if (table) {
     table.destroy();
     $('#leaderboard').empty();
   }
 
   // Build table data array
-  const tableData = data.map(row => [
-    row.Model,
-    row.Method,
-    row.AvgAccuracy,
-    row.AvgF1,
-    '<button class="details-btn">View</button>',
-    JSON.stringify(row.Details)
-  ]);
+  const tableData = data.map(row => {
+    // rename for display
+    const displayModel = prettyModel(row.Model);
+    const displayMethod = prettyMethod(row.Method);
+    return [
+      displayModel,
+      displayMethod,
+      row.AvgAccuracy,
+      row.AvgF1,
+      '<button class="details-btn">View</button>',
+      JSON.stringify(row.Details)
+    ];
+  });
 
   table = $('#leaderboard').DataTable({
     data: tableData,
@@ -422,8 +572,7 @@ function renderTable(data) {
       { title: 'Details' },
       { title: 'HiddenDetails', visible: false }
     ],
-    // Default sort by F1 desc => column index 3
-    order: [[3, 'desc']]
+    order: [[3, 'desc']] // default sort by F1 desc
   });
 
   // On click 'View', expand row details
@@ -432,7 +581,8 @@ function renderTable(data) {
     const details = JSON.parse(row.data()[5]);
     let html = '<div class="details"><strong>Per-Task Results:</strong><ul>';
     details.forEach(d => {
-      html += `<li><strong>${d.Task}</strong>: Accuracy=${d.Accuracy}, F1=${d.F1}</li>`;
+      const displayT = prettyTask(d.Task);
+      html += `<li><strong>${displayT}</strong>: Accuracy=${d.Accuracy}, F1=${d.F1}</li>`;
     });
     html += '</ul></div>';
     $(this).parent().append(html);
@@ -440,7 +590,6 @@ function renderTable(data) {
   });
 }
 
-// Called whenever checkboxes change or after data loads
 function updateLeaderboard() {
   const selectedTasks = getSelectedTasks();
   const filtered = filterByTasks(allData, selectedTasks);
@@ -448,9 +597,17 @@ function updateLeaderboard() {
   renderTable(aggregated);
 }
 
-// Initialize everything
+// Toggles the entire #task-selector div
+let tasksVisible = true;
+const toggleBtn = document.getElementById('toggleTaskSelectorBtn');
+toggleBtn.addEventListener('click', () => {
+  tasksVisible = !tasksVisible;
+  document.getElementById('task-selector').style.display = tasksVisible ? 'block' : 'none';
+  toggleBtn.textContent = tasksVisible ? 'Hide Task Selection' : 'Show Task Selection';
+});
+
 function initLeaderboard() {
-  // 1) Build the nested checkbox UI
+  // 1) Build the nested checkbox UI (all checked by default)
   buildNestedUI();
 
   // 2) Load all CSVs
@@ -460,7 +617,7 @@ function initLeaderboard() {
       allData.push(...rows);
       loadedCount++;
       if (loadedCount === csvFiles.length) {
-        // Everything loaded
+        // Everything loaded => show aggregated with all tasks selected
         updateLeaderboard();
       }
     });
