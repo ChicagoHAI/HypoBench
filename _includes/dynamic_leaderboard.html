@@ -1,5 +1,3 @@
-<!-- _includes/dynamic_leaderboard.html -->
-
 <!-- DataTables + PapaParse + jQuery from CDN -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
@@ -8,114 +6,488 @@
 
 <h2>HypoBench Leaderboard</h2>
 
+<!-- 
+  1) Nested Category UI 
+     We'll dynamically build checkboxes for top-level tasks, 
+     each with sub-levels, each with a list of actual datasets. 
+-->
+<div id="task-selector" style="margin-bottom: 1em;">
+  <!-- We'll fill this container via JS -->
+</div>
+
+<!-- 
+  2) The DataTable 
+     Aggregates the selected tasks and shows average F1 + Accuracy. 
+-->
 <table id="leaderboard" class="display"></table>
 
 <script>
-  // Update these paths to match your actual CSV locations
-  const csvFiles = [
-    '{{ site.baseurl }}/assets/data/GPT_combined_results_synth.csv',
-    '{{ site.baseurl }}/assets/data/Llama_combined_results_synth.csv',
-    '{{ site.baseurl }}/assets/data/Qwen_combined_results_synth.csv',
-    '{{ site.baseurl }}/assets/data/DeepSeek_combined_results_synth.csv'
-  ];
-
-  const allData = [];
-
-  // Parse one CSV
-  function loadCSV(file, callback) {
-    Papa.parse(file, {
-      download: true,
-      header: true,
-      complete: function(results) {
-        // Insert a 'Model' field from the filename
-        results.data.forEach(row => {
-          row.Model = file.split('_')[0].replace('{{ site.baseurl }}/assets/data/', '');
-        });
-        callback(results.data);
-      }
-    });
+// ---------------------
+// 1) CATEGORIES / TASKS
+// ---------------------
+// You provided a multi-level object structure like this:
+const categories = {
+  All: null,  // we'll treat this as a special key if you want an 'All' toggle
+  admission: {
+    "level 1": [ "admission/level_1/base" ],
+    "level 2": [
+      "admission/level_2/depth_2",
+      "admission/level_2/distractor_3",
+      "admission/level_2/noise_10",
+      "admission/level_2/size_5"
+    ],
+    "level 3": [
+      "admission/level_3/depth_3",
+      "admission/level_3/distractor_6",
+      "admission/level_3/noise_20",
+      "admission/level_3/size_10"
+    ],
+    "level 4": [
+      "admission/level_4/depth_4",
+      "admission/level_4/distractor_10",
+      "admission/level_4/noise_30",
+      "admission/level_4/size_15"
+    ]
+  },
+  admission_adv: {
+    "level 1": [ "admission_adv/level_1/base" ],
+    "level 2": [
+      "admission_adv/level_2/depth_2",
+      "admission_adv/level_2/distractor_3",
+      "admission_adv/level_2/noise_10",
+      "admission_adv/level_2/size_5"
+    ],
+    "level 3": [
+      "admission_adv/level_3/depth_3",
+      "admission_adv/level_3/distractor_6",
+      "admission_adv/level_3/noise_20",
+      "admission_adv/level_3/size_10"
+    ],
+    "level 4": [
+      "admission_adv/level_4/depth_4",
+      "admission_adv/level_4/distractor_10",
+      "admission_adv/level_4/noise_30",
+      "admission_adv/level_4/size_15"
+    ]
+  },
+  election: {
+    "level 0": [
+      "election/level0",
+      "election/level0_nosubtlety"
+    ],
+    "level 1": [
+      "election/level1",
+      "election/level1_nosubtlety"
+    ],
+    "level 2": [
+      "election/level2",
+      "election/level2_nosubtlety"
+    ],
+    "level 3": [
+      "election/level3",
+      "election/level3_nosubtlety"
+    ],
+    "level 4": [
+      "election/level4",
+      "election/level4_nosubtlety"
+    ],
+    "level 5": [
+      "election/level5",
+      "election/level5_nosubtlety"
+    ],
+    "controlled": [
+      "election_controlled/5_0_0",
+      "election_controlled/10_0_0",
+      "election_controlled/15_0_0",
+      "election_controlled/20_0_0",
+      "election_controlled/20_0.1_0",
+      "election_controlled/20_0.2_0",
+      "election_controlled/20_0.3_0",
+      "election_controlled/20_0_0.1",
+      "election_controlled/20_0_0.2",
+      "election_controlled/20_0_0.3",
+      "election_controlled/20_0.1_0.1",
+      "election_controlled/20_0.2_0.2",
+      "election_controlled/20_0.3_0.3"
+    ],
+    "counterfactual": [
+      "election/counterfactual/normal",
+      "election/counterfactual/counterfactual"
+    ]
+  },
+  preference: {
+    "level 0": [
+      "preference/level0",
+      "preference/level0_nosubtlety"
+    ],
+    "level 1": [
+      "preference/level1",
+      "preference/level1_nosubtlety"
+    ],
+    "level 2": [
+      "preference/level2",
+      "preference/level2_nosubtlety"
+    ],
+    "level 3": [
+      "preference/level3",
+      "preference/level3_nosubtlety"
+    ],
+    "level 4": [
+      "preference/level4",
+      "preference/level4_nosubtlety"
+    ],
+    "level 5": [
+      "preference/level5",
+      "preference/level5_nosubtlety"
+    ],
+    "controlled": [
+      "preference_controlled/5_0_0",
+      "preference_controlled/10_0_0",
+      "preference_controlled/15_0_0",
+      "preference_controlled/20_0_0",
+      "preference_controlled/20_0.1_0",
+      "preference_controlled/20_0.2_0",
+      "preference_controlled/20_0.3_0",
+      "preference_controlled/20_0_0.1",
+      "preference_controlled/20_0_0.2",
+      "preference_controlled/20_0_0.3",
+      "preference_controlled/20_0.1_0.1",
+      "preference_controlled/20_0.2_0.2",
+      "preference_controlled/20_0.3_0.3"
+    ]
+  },
+  shoe: {
+    "simple": [ "shoe" ],
+    "two_level": [
+      "shoe_two_level/simple",
+      "shoe_two_level/hard"
+    ]
   }
+};
 
-  // Aggregate by (Model, Method)
-  function aggregateData(data) {
-    const map = new Map();
-    data.forEach(row => {
-      const key = row.Model + '||' + row.Method;
-      if (!map.has(key)) {
-        map.set(key, { Model: row.Model, Method: row.Method, Accuracy: [], F1: [], Details: [] });
-      }
-      const entry = map.get(key);
-      entry.Accuracy.push(parseFloat(row.Accuracy));
-      entry.F1.push(parseFloat(row.F1));
-      entry.Details.push({
-        Task: row.Task,
-        Accuracy: row.Accuracy,
-        F1: row.F1
-      });
-    });
+// ------------------------
+// 2) BUILD THE CHECKBOX UI
+// ------------------------
+function createCategoryUI(containerId, categoriesObj) {
+  const container = document.getElementById(containerId);
 
-    // Convert map to array
-    return Array.from(map.values()).map(e => ({
-      Model: e.Model,
-      Method: e.Method,
-      AvgAccuracy: (e.Accuracy.reduce((a, b) => a + b, 0) / e.Accuracy.length).toFixed(2),
-      AvgF1: (e.F1.reduce((a, b) => a + b, 0) / e.F1.length).toFixed(2),
-      Details: e.Details
-    }));
-  }
+  // Clear existing
+  container.innerHTML = '';
 
-  // Render the DataTable
-  function renderTable(data) {
-    const tableData = data.map(row => [
-      row.Model,
-      row.Method,
-      row.AvgAccuracy,
-      row.AvgF1,
-      '<button class=\"details-btn\">View</button>',
-      JSON.stringify(row.Details)
-    ]);
+  // If you want an 'All' toggle, you can handle it separately, 
+  // or skip it if 'All' is truly a top-level key. 
+  // For demonstration, let's skip a single 'All' toggle 
+  // and just create checkboxes for each top-level category.
 
-    const table = $('#leaderboard').DataTable({
-      data: tableData,
-      columns: [
-        { title: 'Model' },
-        { title: 'Method' },
-        { title: 'Avg Accuracy' },
-        { title: 'Avg F1' },
-        { title: 'Details' },
-        { title: 'HiddenDetails', visible: false }
-      ]
-    });
+  for (const topCat in categoriesObj) {
+    // If topCat is 'All' and you want a special handling, do that here
+    if (topCat === 'All') continue; // skip or handle differently
 
-    // Expand to show per-task results
-    $('#leaderboard tbody').on('click', 'button.details-btn', function() {
-      const row = table.row($(this).parents('tr'));
-      const details = JSON.parse(row.data()[5]);
-      let html = '<div class=\"details\"><strong>Per-Task Results:</strong><ul>';
-      details.forEach(d => {
-        html += `<li><strong>${d.Task}</strong>:
-                    Accuracy=${d.Accuracy}, F1=${d.F1}</li>`;
-      });
-      html += '</ul></div>';
-      $(this).parent().append(html);
-      $(this).remove();
-    });
-  }
+    const subLevels = categoriesObj[topCat];
 
-  // Initialization
-  function initLeaderboard() {
-    let loadedCount = 0;
-    csvFiles.forEach(file => {
-      loadCSV(file, data => {
-        allData.push(...data);
-        loadedCount++;
-        if (loadedCount === csvFiles.length) {
-          renderTable(aggregateData(allData));
+    // 1) Outer container for each top-level category
+    const topDiv = document.createElement('div');
+    topDiv.style.border = '1px solid #ccc';
+    topDiv.style.marginBottom = '0.5em';
+    topDiv.style.padding = '0.5em';
+
+    // 2) A top-level checkbox
+    const topLabel = document.createElement('label');
+    const topCheckbox = document.createElement('input');
+    topCheckbox.type = 'checkbox';
+    topCheckbox.value = topCat; // e.g. 'admission'
+
+    topLabel.appendChild(topCheckbox);
+    topLabel.appendChild(document.createTextNode(' ' + topCat));
+    topDiv.appendChild(topLabel);
+
+    // 3) Sub-container for this category's levels
+    const levelContainer = document.createElement('div');
+    levelContainer.style.marginLeft = '1em';
+
+    // If subLevels is null, do nothing — that means all tasks
+    if (subLevels && typeof subLevels === 'object') {
+      // e.g. subLevels = { 'level 1': [...], 'level 2': [...], ... }
+      for (const levelName in subLevels) {
+        const tasksArray = subLevels[levelName];
+
+        // a) Div for each level
+        const levelDiv = document.createElement('div');
+        levelDiv.style.borderLeft = '2px dashed #ccc';
+        levelDiv.style.marginLeft = '0.5em';
+        levelDiv.style.paddingLeft = '0.5em';
+        levelDiv.style.marginBottom = '0.25em';
+
+        // b) checkbox for the level
+        const levelLabel = document.createElement('label');
+        const levelCheckbox = document.createElement('input');
+        levelCheckbox.type = 'checkbox';
+        levelCheckbox.value = levelName; // e.g. 'level 1'
+        
+        levelLabel.appendChild(levelCheckbox);
+        levelLabel.appendChild(document.createTextNode(' ' + levelName));
+        levelDiv.appendChild(levelLabel);
+
+        // c) sub-sub-container for individual tasks
+        const tasksDiv = document.createElement('div');
+        tasksDiv.style.marginLeft = '1em';
+
+        if (Array.isArray(tasksArray)) {
+          tasksArray.forEach(taskPath => {
+            // each dataset => checkbox
+            const taskLabel = document.createElement('label');
+            taskLabel.style.display = 'block';
+            const taskCheckbox = document.createElement('input');
+            taskCheckbox.type = 'checkbox';
+            taskCheckbox.value = taskPath; // e.g. 'admission/level_1/base'
+            
+            taskLabel.appendChild(taskCheckbox);
+            taskLabel.appendChild(document.createTextNode(' ' + taskPath));
+            tasksDiv.appendChild(taskLabel);
+          });
         }
+
+        levelDiv.appendChild(tasksDiv);
+        levelContainer.appendChild(levelDiv);
+
+        // d) If user checks/unchecks the level, toggle all tasks
+        levelCheckbox.addEventListener('change', (e) => {
+          const isChecked = e.target.checked;
+          // Toggle all child checkboxes
+          tasksDiv.querySelectorAll('input[type=checkbox]').forEach(child => {
+            child.checked = isChecked;
+          });
+          // Also check if all levels are checked => top-level checked
+          syncTopLevelCheckbox(topCheckbox, levelContainer);
+          // Update leaderboard
+          updateLeaderboard();
+        });
+
+        // e) If user checks/unchecks an individual task, see if we need to uncheck the level or check it
+        tasksDiv.querySelectorAll('input[type=checkbox]').forEach(taskCheck => {
+          taskCheck.addEventListener('change', () => {
+            syncLevelCheckbox(levelCheckbox, tasksDiv);
+            syncTopLevelCheckbox(topCheckbox, levelContainer);
+            updateLeaderboard();
+          });
+        });
+      }
+    }
+
+    topDiv.appendChild(levelContainer);
+    container.appendChild(topDiv);
+
+    // 4) If user checks/unchecks top-level => toggle all sub-levels
+    topCheckbox.addEventListener('change', (e) => {
+      const isChecked = e.target.checked;
+      // toggle everything inside
+      levelContainer.querySelectorAll('input[type=checkbox]').forEach(child => {
+        child.checked = isChecked;
       });
+      updateLeaderboard();
     });
   }
+}
 
-  // Start
-  initLeaderboard();
+// Helper: If all tasks in a level are checked, check the level box; if any unchecked, uncheck level
+function syncLevelCheckbox(levelCheckbox, tasksDiv) {
+  const boxes = tasksDiv.querySelectorAll('input[type=checkbox]');
+  const allChecked = Array.from(boxes).every(b => b.checked);
+  const noneChecked = Array.from(boxes).every(b => !b.checked);
+  if (allChecked) {
+    levelCheckbox.checked = true;
+    levelCheckbox.indeterminate = false;
+  } else if (noneChecked) {
+    levelCheckbox.checked = false;
+    levelCheckbox.indeterminate = false;
+  } else {
+    // partial check
+    levelCheckbox.checked = false;
+    levelCheckbox.indeterminate = true;
+  }
+}
+
+// Helper: If all sub-level checkboxes (and tasks) are checked, then top-level is checked
+// If some are partial or unchecked, top-level is partial or unchecked
+function syncTopLevelCheckbox(topCheckbox, levelContainer) {
+  const levelBoxes = levelContainer.querySelectorAll('> div > label > input[type=checkbox]'); 
+  // these are the direct level checkboxes
+  const allChecked = Array.from(levelBoxes).every(b => b.checked && !b.indeterminate);
+  const noneChecked = Array.from(levelBoxes).every(b => !b.checked && !b.indeterminate);
+  if (allChecked) {
+    topCheckbox.checked = true;
+    topCheckbox.indeterminate = false;
+  } else if (noneChecked) {
+    topCheckbox.checked = false;
+    topCheckbox.indeterminate = false;
+  } else {
+    topCheckbox.checked = false;
+    topCheckbox.indeterminate = true;
+  }
+}
+
+// Gather all checked tasks from the UI
+function getSelectedTasks() {
+  // any input[type=checkbox] with a "value" that looks like a dataset path
+  // we'll ignore top-level and level checkboxes, we only want leaf tasks
+  const container = document.getElementById('task-selector');
+  const allTaskCheckboxes = container.querySelectorAll('div div div label input[type=checkbox]');
+  // that query tries to go 3 levels deep (topCat -> level -> tasks)
+  const selected = [];
+  allTaskCheckboxes.forEach(box => {
+    if (box.checked) {
+      // skip if box.value is just 'level 1' or 'level 2', etc.
+      // we only want actual tasks with '/', e.g. 'admission/level_1/base'
+      if (box.value.includes('/')) {
+        selected.push(box.value);
+      }
+    }
+  });
+  return selected;
+}
+
+// --------------------
+// 3) CSV + DataTable
+// --------------------
+const csvFiles = [
+  // Adjust paths for your actual site, e.g. with Liquid if needed:
+  "{{ '/assets/data/GPT_combined_results_synth.csv' | relative_url }}",
+  "{{ '/assets/data/Llama_combined_results_synth.csv' | relative_url }}",
+  "{{ '/assets/data/Qwen_combined_results_synth.csv' | relative_url }}",
+  "{{ '/assets/data/DeepSeek_combined_results_synth.csv' | relative_url }}"
+];
+
+let allData = []; // holds all CSV rows
+let table = null; // DataTable instance
+
+function loadCSV(file, callback) {
+  Papa.parse(file, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+      // Insert 'Model' from filename or do something else
+      results.data.forEach(row => {
+        row.Model = file.split('_')[0]; // e.g. 'GPT'
+      });
+      callback(results.data);
+    }
+  });
+}
+
+// Filter to only rows whose Task is in the selected set
+function filterDataBySelectedTasks(data, selectedTasks) {
+  if (!selectedTasks || selectedTasks.length === 0) {
+    return []; // nothing selected, or show everything? up to you
+    // or we could do: return data if you want 'select none => all tasks'
+  }
+  const allowed = new Set(selectedTasks);
+  return data.filter(row => allowed.has(row.Task));
+}
+
+// Aggregate (Model,Method) => average Accuracy, F1
+function aggregateData(rows) {
+  const map = new Map();
+  rows.forEach(r => {
+    const key = r.Model + '||' + r.Method;
+    if (!map.has(key)) {
+      map.set(key, {
+        Model: r.Model,
+        Method: r.Method,
+        Accuracy: [],
+        F1: [],
+        Details: []
+      });
+    }
+    const entry = map.get(key);
+    entry.Accuracy.push(parseFloat(r.Accuracy));
+    entry.F1.push(parseFloat(r.F1));
+    entry.Details.push({ Task: r.Task, Accuracy: r.Accuracy, F1: r.F1 });
+  });
+
+  return Array.from(map.values()).map(e => ({
+    Model: e.Model,
+    Method: e.Method,
+    AvgAccuracy: (e.Accuracy.reduce((a, b) => a + b, 0) / e.Accuracy.length).toFixed(2),
+    AvgF1: (e.F1.reduce((a, b) => a + b, 0) / e.F1.length).toFixed(2),
+    Details: e.Details
+  }));
+}
+
+// Render (or re-render) the DataTable
+function renderTable(data) {
+  // If we already created a DataTable, destroy it first
+  if (table) {
+    table.destroy();
+    $('#leaderboard').empty();
+  }
+  const tableData = data.map(row => [
+    row.Model,
+    row.Method,
+    row.AvgAccuracy,
+    row.AvgF1,
+    '<button class=\"details-btn\">View</button>',
+    JSON.stringify(row.Details)
+  ]);
+  table = $('#leaderboard').DataTable({
+    data: tableData,
+    columns: [
+      { title: 'Model' },
+      { title: 'Method' },
+      { title: 'Avg Accuracy' },
+      { title: 'Avg F1' },
+      { title: 'Details' },
+      { title: 'HiddenDetails', visible: false }
+    ],
+    // default sort by F1 descending (column index 3)
+    order: [[3, 'desc']]
+  });
+
+  // Expandable detail
+  $('#leaderboard tbody').on('click', 'button.details-btn', function() {
+    const row = table.row($(this).parents('tr'));
+    const details = JSON.parse(row.data()[5]);
+    let html = '<div class=\"details\"><strong>Per-Task Results:</strong><ul>';
+    details.forEach(d => {
+      html += `<li><strong>${d.Task}</strong>: Accuracy=${d.Accuracy}, F1=${d.F1}</li>`;
+    });
+    html += '</ul></div>';
+    $(this).parent().append(html);
+    $(this).remove();
+  });
+}
+
+// Called whenever checkboxes change, or after data load
+function updateLeaderboard() {
+  const selectedTasks = getSelectedTasks();
+  const filtered = filterDataBySelectedTasks(allData, selectedTasks);
+  const aggregated = aggregateData(filtered);
+  renderTable(aggregated);
+}
+
+// 4) INIT: parse all CSVs, build the checkbox UI, then do an initial table render
+function initLeaderboard() {
+  // Build the nested checkboxes
+  createCategoryUI('task-selector', categories);
+
+  // Then load all CSV files
+  let loadedCount = 0;
+  csvFiles.forEach(file => {
+    loadCSV(file, data => {
+      allData.push(...data);
+      loadedCount++;
+      if (loadedCount === csvFiles.length) {
+        // All CSV loaded. We won't show anything until user checks some tasks,
+        // or we can automatically check everything if you prefer.
+        // For now, let's do nothing here, so the table is empty at first.
+        // If you want the default to be "All tasks" selected, you'd check all
+        // checkboxes or skip the filter in filterDataBySelectedTasks.
+        updateLeaderboard(); // fill table with whatever is selected
+      }
+    });
+  });
+}
+
+// Start
+initLeaderboard();
 </script>
