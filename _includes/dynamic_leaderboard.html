@@ -29,7 +29,7 @@
       complete: function(results) {
         // Insert a 'Model' field from the filename
         results.data.forEach(row => {
-          row.Model = file.split('_')[0].replace('/assets/data/', '');
+          row.Model = file.split('_')[0].replace('{{ site.baseurl }}/assets/data/', '');
         });
         callback(results.data);
       }
