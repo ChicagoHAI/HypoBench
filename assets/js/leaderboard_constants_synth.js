@@ -159,11 +159,18 @@ const categories = {
  * 2) CSV file paths.
  *    Adjust for your GitHub Pages structure.
  **************************************************/
-const csvFiles = [
+const csvFiles_acc = [
   "{{ '/assets/data/GPT_combined_results_synth.csv' | relative_url }}",
   "{{ '/assets/data/Llama_combined_results_synth.csv' | relative_url }}",
   "{{ '/assets/data/Qwen_combined_results_synth.csv' | relative_url }}",
   "{{ '/assets/data/DeepSeek_combined_results_synth.csv' | relative_url }}"
+];
+
+const csvFiles_hdr = [
+  "{{ '/assets/data/GPT_combined_HDR_results_synth.csv' | relative_url }}",
+  "{{ '/assets/data/Llama_combined_HDR_results_synth.csv' | relative_url }}",
+  "{{ '/assets/data/Qwen_combined_HDR_results_synth.csv' | relative_url }}",
+  "{{ '/assets/data/DeepSeek_combined_HDR_results_synth.csv' | relative_url }}"
 ];
 
 //------------------------------------------------------------

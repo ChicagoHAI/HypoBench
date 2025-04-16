@@ -15,7 +15,7 @@
 
 <h2>HypoBench Leaderboard</h2>
 <!-- Load constants (categories, rename maps, csv paths) -->
-<script src="{{ '/assets/js/leaderboard_constants.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/leaderboard_constants_synth.js' | relative_url }}"></script>
 
 <button id="toggleTaskSelectorBtn" style="margin-bottom: 1em;">Show Task Selection</button>
 <p>Select tasks below to filter the aggregated results in real time:</p>
@@ -253,11 +253,11 @@ document.getElementById('toggleTaskSelectorBtn').addEventListener('click', () =>
 function initLeaderboard() {
   buildNestedUI();
   let loadedCount = 0;
-  csvFiles.forEach(file => {
+  csvFiles_acc.forEach(file => {
     loadCSV(file, data => {
       allData.push(...data);
       loadedCount++;
-      if (loadedCount === csvFiles.length) {
+      if (loadedCount === csvFiles_acc.length) {
         updateLeaderboard();
       }
     });
