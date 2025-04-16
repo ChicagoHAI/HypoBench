@@ -215,18 +215,112 @@ let table = null; // DataTables instance
 // The aggregator will keep the original keys to filter, but show these.
 
 const renameTask = {
-  "admission_level_1_base": "Admission Base (Level 1)",
-  // etc.
+  // Admission tasks
+  "admission_level_1_base": "College Admission Base (Level 1)",
+  "admission_level_2_depth_2": "College Admission Depth 2 (Level 2)",
+  "admission_level_2_distractor_3": "College Admission Distractor 3 (Level 2)",
+  "admission_level_2_noise_10": "College Admission Noise 10% (Level 2)",
+  "admission_level_2_size_5": "College Admission Num. Features: 5 (Level 2)",
+  "admission_level_3_depth_3": "College Admission Depth 3 (Level 3)",
+  "admission_level_3_distractor_6": "College Admission Distractor 6 (Level 3)",
+  "admission_level_3_noise_20": "College Admission Noise 20% (Level 3)",
+  "admission_level_3_size_10": "College Admission Num. Features: 10 (Level 3)",
+  "admission_level_4_depth_4": "College Admission Depth 4 (Level 4)",
+  "admission_level_4_distractor_10": "College Admission Distractor 10 (Level 4)",
+  "admission_level_4_noise_30": "College Admission Noise 30% (Level 4)",
+  "admission_level_4_size_15": "College Admission Num. Features: 15 (Level 4)",
+
+  // Counterintuitive Admission tasks
+  "admission_adv_level_1_base": "Counterintuitive Admission Base (Level 1)",
+  "admission_adv_level_2_depth_2": "Counterintuitive Admission Depth 2 (Level 2)",
+  "admission_adv_level_2_distractor_3": "Counterintuitive Admission Distractor 3 (Level 2)",
+  "admission_adv_level_2_noise_10": "Counterintuitive Admission Noise 10% (Level 2)",
+  "admission_adv_level_2_size_5": "Counterintuitive Admission Num. Features: 5 (Level 2)",
+  "admission_adv_level_3_depth_3": "Counterintuitive Admission Depth 3 (Level 3)",
+  "admission_adv_level_3_distractor_6": "Counterintuitive Admission Distractor 6 (Level 3)",
+  "admission_adv_level_3_noise_20": "Counterintuitive Admission Noise 20% (Level 3)",
+  "admission_adv_level_3_size_10": "Counterintuitive Admission Num. Features: 10 (Level 3)",
+  "admission_adv_level_4_depth_4": "Counterintuitive Admission Depth 4 (Level 4)",
+  "admission_adv_level_4_distractor_10": "Counterintuitive Admission Distractor 10 (Level 4)",
+  "admission_adv_level_4_noise_30": "Counterintuitive Admission Noise 30% (Level 4)",
+  "admission_adv_level_4_size_15": "Counterintuitive Admission Num. Features: 15 (Level 4)",
+
+  // Election tasks
+  "election_level0": "Presidential Election Level 0",
+  "election_level0_nosubtlety": "Presidential Election Level 0 (No Subtlety)",
+  "election_level1": "Presidential Election Level 1",
+  "election_level1_nosubtlety": "Presidential Election Level 1 (No Subtlety)",
+  "election_level2": "Presidential Election Level 2",
+  "election_level2_nosubtlety": "Presidential Election Level 2 (No Subtlety)",
+  "election_level3": "Presidential Election Level 3",
+  "election_level3_nosubtlety": "Presidential Election Level 3 (No Subtlety)",
+  "election_level4": "Presidential Election Level 4",
+  "election_level4_nosubtlety": "Presidential Election Level 4 (No Subtlety)",
+  "election_level5": "Presidential Election Level 5",
+  "election_level5_nosubtlety": "Presidential Election Level 5 (No Subtlety)",
+  "election_controlled_5_0_0": "Presidential Election Controlled (Num. Features: 5, Noise: 0%, Dropout: 0%)",
+  "election_controlled_10_0_0": "Presidential Election Controlled (Num. Features: 10, Noise: 0%, Dropout: 0%)",
+  "election_controlled_15_0_0": "Presidential Election Controlled (Num. Features: 15, Noise: 0%, Dropout: 0%)",
+  "election_controlled_20_0_0": "Presidential Election Controlled (Num. Features: 20, Noise: 0%, Dropout: 0%)",
+  "election_controlled_20_0.1_0": "Presidential Election Controlled (Num. Features: 20, Noise: 10%, Dropout: 0%)",
+  "election_controlled_20_0.2_0": "Presidential Election Controlled (Num. Features: 20, Noise: 20%, Dropout: 0%)",
+  "election_controlled_20_0.3_0": "Presidential Election Controlled (Num. Features: 20, Noise: 30%, Dropout: 0%)",
+  "election_controlled_20_0_0.1": "Presidential Election Controlled (Num. Features: 20, Noise: 0%, Dropout: 10%)",
+  "election_controlled_20_0_0.2": "Presidential Election Controlled (Num. Features: 20, Noise: 0%, Dropout: 20%)",
+  "election_controlled_20_0_0.3": "Presidential Election Controlled (Num. Features: 20, Noise: 0%, Dropout: 30%)",
+  "election_controlled_20_0.1_0.1": "Presidential Election Controlled (Num. Features: 20, Noise: 10%, Dropout: 10%)",
+  "election_controlled_20_0.2_0.2": "Presidential Election Controlled (Num. Features: 20, Noise: 20%, Dropout: 20%)",
+  "election_controlled_20_0.3_0.3": "Presidential Election Controlled (Num. Features: 20, Noise: 30%, Dropout: 30%)",
+  "election_counterfactual_normal": "Presidential Election Counterfactual (Normal)",
+  "election_counterfactual_counterfactual": "Presidential Election Counterfactual",
+
+  // Preference tasks
+  "preference_level0": "Personality Prediction Level 0",
+  "preference_level0_nosubtlety": "Personality Prediction Level 0 (No Subtlety)",
+  "preference_level1": "Personality Prediction Level 1",
+  "preference_level1_nosubtlety": "Personality Prediction Level 1 (No Subtlety)",
+  "preference_level2": "Personality Prediction Level 2",
+  "preference_level2_nosubtlety": "Personality Prediction Level 2 (No Subtlety)",
+  "preference_level3": "Personality Prediction Level 3",
+  "preference_level3_nosubtlety": "Personality Prediction Level 3 (No Subtlety)",
+  "preference_level4": "Personality Prediction Level 4",
+  "preference_level4_nosubtlety": "Personality Prediction Level 4 (No Subtlety)",
+  "preference_level5": "Personality Prediction Level 5",
+  "preference_level5_nosubtlety": "Personality Prediction Level 5 (No Subtlety)",
+  "preference_controlled_5_0_0": "Personality Prediction Controlled (Num. Features: 5, Noise: 0%, Dropout: 0%)",
+  "preference_controlled_10_0_0": "Personality Prediction Controlled (Num. Features: 10, Noise: 0%, Dropout: 0%)",
+  "preference_controlled_15_0_0": "Personality Prediction Controlled (Num. Features: 15, Noise: 0%, Dropout: 0%)",
+  "preference_controlled_20_0_0": "Personality Prediction Controlled (Num. Features: 20, Noise: 0%, Dropout: 0%)",
+  "preference_controlled_20_0.1_0": "Personality Prediction Controlled (Num. Features: 20, Noise: 10%, Dropout: 0%)",
+  "preference_controlled_20_0.2_0": "Personality Prediction Controlled (Num. Features: 20, Noise: 20%, Dropout: 0%)",
+  "preference_controlled_20_0.3_0": "Personality Prediction Controlled (Num. Features: 20, Noise: 30%, Dropout: 0%)",
+  "preference_controlled_20_0_0.1": "Personality Prediction Controlled (Num. Features: 20, Noise: 0%, Dropout: 10%)",
+  "preference_controlled_20_0_0.2": "Personality Prediction Controlled (Num. Features: 20, Noise: 0%, Dropout: 20%)",
+  "preference_controlled_20_0_0.3": "Personality Prediction Controlled (Num. Features: 20, Noise: 0%, Dropout: 30%)",
+  "preference_controlled_20_0.1_0.1": "Personality Prediction Controlled (Num. Features: 20, Noise: 10%, Dropout: 10%)",
+  "preference_controlled_20_0.2_0.2": "Personality Prediction Controlled (Num. Features: 20, Noise: 20%, Dropout: 20%)",
+  "preference_controlled_20_0.3_0.3": "Personality Prediction Controlled (Num. Features: 20, Noise: 30%, Dropout: 30%)",
+
+  // Shoe tasks
+  "shoe": "Shoe Sales Base",
+  "shoe_two_level_simple": "Shoe Sales Two-Level Simple",
+  "shoe_two_level_hard": "Shoe Sales Two-Level Hard"
 };
 
 const renameMethod = {
-  // e.g. "Zero-shot Inference": "ZS Inference",
-  // "Few-shot": "FS",
+  "Zero-shot Inference": "Zero-shot Inference",
+  "Few-shot Inference": "Few-shot Inference",
+  "Zero-shot Generation": "Zero-shot Generation",
+  "\\ioprompt": "IO Prompting",
+  "\\iorefine": "Iterative Refinement",
+  "\\hypogenic": "HypoGeniC"
 };
 
 const renameModel = {
-  // e.g. "GPT": "GPT-4o Mini",
-  // "Llama": "Llama 2-70B",
+  "GPT": "GPT-4o-mini",
+  "Llama": "Llama-3.1-70B-Instruct",
+  "Qwen": "Qwen-2.5-72B-Instruct",
+  "DeepSeek": "DeepSeek-R1-Distill-Llama-70B-local"
 };
 
 //------------------------------------------------------------
@@ -506,10 +600,6 @@ function updateLeaderboard() {
 // Toggles the entire #task-selector div
 let tasksVisible = false;
 const toggleBtn = document.getElementById('toggleTaskSelectorBtn');
-// On page load, hide the task selector
-document.getElementById('task-selector').style.display = 'none';
-toggleBtn.textContent = 'Show Task Selection';
-
 toggleBtn.addEventListener('click', () => {
   tasksVisible = !tasksVisible;
   document.getElementById('task-selector').style.display = tasksVisible ? 'block' : 'none';
