@@ -5,85 +5,264 @@
 <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
 
 <style>
-  .category-block {border:1px solid #ccc;padding:8px;margin-bottom:8px;}
-  .sub-block {border-left:2px dashed #ccc;margin-left:1em;padding-left:1em;margin-top:4px;}
-  table {width:100%;}
-  .details {margin-top:1em;}
-  .sub-level-header {display:flex;align-items:center;gap:.5em;}
-  .toggle-btn {background:none;border:none;cursor:pointer;font-size:1em;font-weight:bold;}
+  .category-block { border: 1px solid #ccc; padding: 8px; margin-bottom: 8px; }
+  .sub-block { border-left: 2px dashed #ccc; margin-left: 1em; padding-left: 1em; margin-top: 4px; }
+  table { width: 100%; }
+  .details { margin-top: 1em; }
+  .sub-level-header { display: flex; align-items: center; gap: 0.5em; }
+  .toggle-btn { background: none; border: none; cursor: pointer; font-size: 1em; font-weight: bold; }
 </style>
 
 <h2>HypoBench Leaderboard</h2>
-
 <!-- Load constants (categories, rename maps, csv paths) -->
-<!-- load constants file from assets/js (GitHub Pages safe path) -->
 <script src="{{ '/assets/js/leaderboard_constants.js' | relative_url }}"></script>
 
-<button id="toggleTaskSelectorBtn" style="margin-bottom:1em;">Show Task Selection</button>
+<button id="toggleTaskSelectorBtn" style="margin-bottom: 1em;">Show Task Selection</button>
 <p>Select tasks below to filter the aggregated results in real time:</p>
-<div id="task-selector" style="margin-bottom:1em;display:none;"></div>
+<div id="task-selector" style="margin-bottom: 1em; display: none;"></div>
 <table id="leaderboard" class="display"></table>
 
 <script>
-/*********************** UI HELPERS ************************/ 
-function createArrowBtn(open=false){const b=document.createElement('button');b.type='button';b.className='toggle-btn';b.textContent=open?'v':'>';return b;}
+function createArrowBtn(open = false) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'toggle-btn';
+  b.textContent = open ? 'v' : '>';
+  return b;
+}
 
-/********************* BUILD CHECKBOX UI *******************/
-function buildNestedUI(){
-  const c=document.getElementById('task-selector');c.innerHTML='';
-  for(const top in categories){if(top==='All')continue;const sub=categories[top];
-    const blk=document.createElement('div');blk.className='category-block';
-    const header=document.createElement('div');header.style.display='flex';header.style.alignItems='center';header.style.gap='.5em';
-    const arr=createArrowBtn(false);
-    const subWrap=document.createElement('div');subWrap.style.marginLeft='1em';subWrap.style.display='none';
-    arr.addEventListener('click',()=>{const hid=subWrap.style.display==='none';subWrap.style.display=hid?'block':'none';arr.textContent=hid?'v':'>';});
-    const topChk=document.createElement('input');topChk.type='checkbox';topChk.checked=true;topChk.value=top;
-    const topLbl=document.createElement('label');topLbl.appendChild(topChk);topLbl.appendChild(document.createTextNode(' '+(renameCategory[top]||top)));
-    header.appendChild(arr);header.appendChild(topLbl);blk.appendChild(header);blk.appendChild(subWrap);
-    
-    if(sub&&typeof sub==='object'){
-      for(const lvl in sub){const tasks=sub[lvl];
-        const lvlDiv=document.createElement('div');lvlDiv.className='sub-block';
-        const lvlHeader=document.createElement('div');lvlHeader.className='sub-level-header';
-        const lvlArr=createArrowBtn(false);const tasksDiv=document.createElement('div');tasksDiv.style.marginLeft='1em';tasksDiv.style.display='none';
-        lvlArr.addEventListener('click',()=>{const hid=tasksDiv.style.display==='none';tasksDiv.style.display=hid?'block':'none';lvlArr.textContent=hid?'v':'>';});
-        const lvlChk=document.createElement('input');lvlChk.type='checkbox';lvlChk.checked=true;lvlChk.value=lvl;
-        const lvlLbl=document.createElement('label');lvlLbl.appendChild(lvlChk);lvlLbl.appendChild(document.createTextNode(' '+lvl));
-        lvlHeader.appendChild(lvlArr);lvlHeader.appendChild(lvlLbl);lvlDiv.appendChild(lvlHeader);lvlDiv.appendChild(tasksDiv);
-        if(Array.isArray(tasks)){
-           tasks.forEach(t=>{const tl=document.createElement('label');tl.style.display='block';const cb=document.createElement('input');cb.type='checkbox';cb.checked=true;cb.value=t;tl.appendChild(cb);tl.appendChild(document.createTextNode(' '+(renameTask[t]||t)));tasksDiv.appendChild(tl);
-             cb.addEventListener('change',()=>{syncCheckbox(lvlChk,tasksDiv);syncCheckbox(topChk,subWrap);updateLeaderboard();});});}
-        lvlChk.addEventListener('change',e=>{const chk=e.target.checked;tasksDiv.querySelectorAll('input[type=checkbox]').forEach(d=>d.checked=chk);syncCheckbox(topChk,subWrap);updateLeaderboard();});
-        subWrap.appendChild(lvlDiv);
+function buildNestedUI() {
+  const container = document.getElementById('task-selector');
+  container.innerHTML = '';
+  for (const top in categories) {
+    if (top === 'All') continue;
+    const sub = categories[top];
+    const block = document.createElement('div');
+    block.className = 'category-block';
+
+    const header = document.createElement('div');
+    header.className = 'sub-level-header';
+    const arrow = createArrowBtn(false);
+    const subWrap = document.createElement('div');
+    subWrap.style.marginLeft = '1em';
+    subWrap.style.display = 'none';
+    arrow.addEventListener('click', () => {
+      const hidden = subWrap.style.display === 'none';
+      subWrap.style.display = hidden ? 'block' : 'none';
+      arrow.textContent = hidden ? 'v' : '>';
+    });
+
+    const topCheckbox = document.createElement('input');
+    topCheckbox.type = 'checkbox';
+    topCheckbox.checked = true;
+    topCheckbox.value = top;
+    const topLabel = document.createElement('label');
+    topLabel.appendChild(topCheckbox);
+    topLabel.appendChild(document.createTextNode(' ' + (renameCategory[top] || top)));
+
+    header.appendChild(arrow);
+    header.appendChild(topLabel);
+    block.appendChild(header);
+    block.appendChild(subWrap);
+
+    if (sub && typeof sub === 'object') {
+      for (const level in sub) {
+        const tasks = sub[level];
+        const levelDiv = document.createElement('div');
+        levelDiv.className = 'sub-block';
+        const levelHeader = document.createElement('div');
+        levelHeader.className = 'sub-level-header';
+
+        const levelArrow = createArrowBtn(false);
+        const tasksDiv = document.createElement('div');
+        tasksDiv.style.marginLeft = '1em';
+        tasksDiv.style.display = 'none';
+        levelArrow.addEventListener('click', () => {
+          const hidden = tasksDiv.style.display === 'none';
+          tasksDiv.style.display = hidden ? 'block' : 'none';
+          levelArrow.textContent = hidden ? 'v' : '>';
+        });
+
+        const levelCheckbox = document.createElement('input');
+        levelCheckbox.type = 'checkbox';
+        levelCheckbox.checked = true;
+        levelCheckbox.value = level;
+        const levelLabel = document.createElement('label');
+        levelLabel.appendChild(levelCheckbox);
+        levelLabel.appendChild(document.createTextNode(' ' + level));
+
+        levelHeader.appendChild(levelArrow);
+        levelHeader.appendChild(levelLabel);
+        levelDiv.appendChild(levelHeader);
+        levelDiv.appendChild(tasksDiv);
+
+        if (Array.isArray(tasks)) {
+          tasks.forEach(task => {
+            const taskLabel = document.createElement('label');
+            taskLabel.style.display = 'block';
+            const taskCheckbox = document.createElement('input');
+            taskCheckbox.type = 'checkbox';
+            taskCheckbox.checked = true;
+            taskCheckbox.value = task;
+            taskLabel.appendChild(taskCheckbox);
+            taskLabel.appendChild(document.createTextNode(' ' + (renameTask[task] || task)));
+            tasksDiv.appendChild(taskLabel);
+
+            taskCheckbox.addEventListener('change', () => {
+              syncCheckbox(levelCheckbox, tasksDiv);
+              syncCheckbox(topCheckbox, subWrap);
+              updateLeaderboard();
+            });
+          });
+        }
+
+        levelCheckbox.addEventListener('change', e => {
+          const checked = e.target.checked;
+          tasksDiv.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = checked);
+          syncCheckbox(topCheckbox, subWrap);
+          updateLeaderboard();
+        });
+
+        subWrap.appendChild(levelDiv);
       }
     }
-    topChk.addEventListener('change',e=>{const chk=e.target.checked;subWrap.querySelectorAll('input[type=checkbox]').forEach(d=>d.checked=chk);updateLeaderboard();});
-    c.appendChild(blk);
+
+    topCheckbox.addEventListener('change', e => {
+      const checked = e.target.checked;
+      subWrap.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = checked);
+      updateLeaderboard();
+    });
+
+    container.appendChild(block);
   }
 }
 
-/******************* SELECTION HELPERS *********************/
-function syncCheckbox(parent,container){const boxes=container.querySelectorAll('input[type=checkbox]');const all=[...boxes].every(b=>b.checked);const none=[...boxes].every(b=>!b.checked);parent.checked=all;parent.indeterminate=!all&&!none;}
-function getSelectedTasks(){return[...document.querySelectorAll('.sub-block div label input[type=checkbox]')].filter(b=>b.checked).map(b=>b.value);} 
+function syncCheckbox(parent, container) {
+  const boxes = container.querySelectorAll('input[type=checkbox]');
+  const allChecked = [...boxes].every(b => b.checked);
+  const noneChecked = [...boxes].every(b => !b.checked);
+  parent.checked = allChecked;
+  parent.indeterminate = !allChecked && !noneChecked;
+}
 
-/***************** CSV LOADING & AGGREGATION **************/
-let allData=[],table=null;
-function loadCSV(path,cb){Papa.parse(path,{download:true,header:true,skipEmptyLines:true,complete:r=>{r.data.forEach(row=>row.Model=path.split('_')[0]);cb(r.data);}});} 
-function filterData(data,tasks){if(!tasks.length)return[];const set=new Set(tasks);return data.filter(r=>set.has(r.Task));}
-function aggregate(rows){const m=new Map();rows.forEach(r=>{const k=r.Model+'||'+r.Method;if(!m.has(k))m.set(k,{Model:r.Model,Method:r.Method,Acc:[],F1:[],Details:[]});const e=m.get(k);e.Acc.push(+r.Accuracy);e.F1.push(+r.F1);e.Details.push({Task:r.Task,Accuracy:r.Accuracy,F1:r.F1});});
- return [...m.values()].map(e=>({Model:e.Model,Method:e.Method,AvgAcc:(e.Acc.reduce((a,b)=>a+b,0)/e.Acc.length).toFixed(2),AvgF1:(e.F1.reduce((a,b)=>a+b,0)/e.F1.length).toFixed(2),Details:e.Details}));}
+function getSelectedTasks() {
+  return [...document.querySelectorAll('.sub-block div label input[type=checkbox]')]
+    .filter(b => b.checked)
+    .map(b => b.value);
+}
 
-/************************* TABLE ***************************/
-function renderTable(data){if(table){table.destroy();$('#leaderboard').empty();}
- const rows=data.map(r=>[renameModel[r.Model]||r.Model,renameMethod[r.Method]||r.Method,r.AvgAcc,r.AvgF1,'<button class="details-btn" data-expanded="false">View</button>',JSON.stringify(r.Details)]);
- table=$('#leaderboard').DataTable({data:rows,columns:[{title:'Model'},{title:'Method'},{title:'Avg Accuracy'},{title:'Avg F1'},{title:'Details'},{title:'Hidden',visible:false}],order:[[3,'desc']]});
- $('#leaderboard tbody').off('click').on('click','button.details-btn',function(){const row=table.row($(this).parents('tr'));const det=JSON.parse(row.data()[5]);const exp=$(this).attr('data-expanded')==='true';if(!exp){let html='<div class="details"><ul>';det.forEach(d=>html+=`<li><strong>${renameTask[d.Task]||d.Task}</strong>: Acc=${d.Accuracy}, F1=${d.F1}</li>`);html+='</ul></div>';$(this).parent().append(html);$(this).attr('data-expanded','true').text('Hide');}else{$(this).parent().find('.details').remove();$(this).attr('data-expanded','false').text('View');}});} 
+let allData = [], table = null;
+function loadCSV(path, callback) {
+  Papa.parse(path, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+      results.data.forEach(row => {
+        const parts = path.split('/');
+        row.Model = parts[parts.length - 1].split('_')[0];
+      });
+      callback(results.data);
+    }
+  });
+}
 
-function updateLeaderboard(){renderTable(aggregate(filterData(allData,getSelectedTasks())));} 
+function filterData(data, selectedTasks) {
+  if (!selectedTasks.length) return [];
+  const allowed = new Set(selectedTasks);
+  return data.filter(row => allowed.has(row.Task));
+}
 
-/*********************** INIT ******************************/
-let visible=false;document.getElementById('toggleTaskSelectorBtn').addEventListener('click',()=>{visible=!visible;document.getElementById('task-selector').style.display=visible?'block':'none';document.getElementById('toggleTaskSelectorBtn').textContent=visible?'Hide Task Selection':'Show Task Selection';});
+function aggregateData(rows) {
+  const map = new Map();
+  rows.forEach(r => {
+    const key = r.Model + '||' + r.Method;
+    if (!map.has(key)) {
+      map.set(key, { Model: r.Model, Method: r.Method, Accuracy: [], F1: [], Details: [] });
+    }
+    const entry = map.get(key);
+    entry.Accuracy.push(parseFloat(r.Accuracy));
+    entry.F1.push(parseFloat(r.F1));
+    entry.Details.push({ Task: r.Task, Accuracy: r.Accuracy, F1: r.F1 });
+  });
+  return Array.from(map.values()).map(e => ({
+    Model: e.Model,
+    Method: e.Method,
+    AvgAccuracy: (e.Accuracy.reduce((a, b) => a + b, 0) / e.Accuracy.length).toFixed(2),
+    AvgF1: (e.F1.reduce((a, b) => a + b, 0) / e.F1.length).toFixed(2),
+    Details: e.Details
+  }));
+}
 
-function init(){buildNestedUI();let cnt=0;csvFiles.forEach(f=>loadCSV(f,d=>{allData.push(...d);cnt++;if(cnt===csvFiles.length)updateLeaderboard();}));}
-init();
+function renderTable(data) {
+  if (table) {
+    table.destroy();
+    $('#leaderboard').empty();
+  }
+  const tableData = data.map(row => [
+    renameModel[row.Model] || row.Model,
+    renameMethod[row.Method] || row.Method,
+    row.AvgAccuracy,
+    row.AvgF1,
+    '<button class="details-btn" data-expanded="false">View</button>',
+    JSON.stringify(row.Details)
+  ]);
+  table = $('#leaderboard').DataTable({
+    data: tableData,
+    columns: [
+      { title: 'Model' },
+      { title: 'Method' },
+      { title: 'Avg Accuracy' },
+      { title: 'Avg F1' },
+      { title: 'Details' },
+      { title: 'HiddenDetails', visible: false }
+    ],
+    order: [[3, 'desc']]
+  });
+
+  $('#leaderboard tbody').off('click').on('click', 'button.details-btn', function () {
+    const row = table.row($(this).parents('tr'));
+    const details = JSON.parse(row.data()[5]);
+    const expanded = $(this).attr('data-expanded') === 'true';
+    if (!expanded) {
+      let html = '<div class="details"><ul>';
+      details.forEach(d => {
+        html += `<li><strong>${renameTask[d.Task] || d.Task}</strong>: Accuracy=${d.Accuracy}, F1=${d.F1}</li>`;
+      });
+      html += '</ul></div>';
+      $(this).parent().append(html);
+      $(this).attr('data-expanded', 'true').text('Hide');
+    } else {
+      $(this).parent().find('.details').remove();
+      $(this).attr('data-expanded', 'false').text('View');
+    }
+  });
+}
+
+function updateLeaderboard() {
+  renderTable(aggregateData(filterData(allData, getSelectedTasks())));
+}
+
+let visible = false;
+document.getElementById('toggleTaskSelectorBtn').addEventListener('click', () => {
+  visible = !visible;
+  document.getElementById('task-selector').style.display = visible ? 'block' : 'none';
+  document.getElementById('toggleTaskSelectorBtn').textContent = visible ? 'Hide Task Selection' : 'Show Task Selection';
+});
+
+function initLeaderboard() {
+  buildNestedUI();
+  let loadedCount = 0;
+  csvFiles.forEach(file => {
+    loadCSV(file, data => {
+      allData.push(...data);
+      loadedCount++;
+      if (loadedCount === csvFiles.length) {
+        updateLeaderboard();
+      }
+    });
+  });
+}
+
+initLeaderboard();
 </script>
