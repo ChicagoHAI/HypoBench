@@ -47,6 +47,23 @@
 /**************************************************
  * 1) Define your multi-level categories object.
  *    EXACTLY match the Task values in your CSVs.
+ **************************************************/
+
+/*
+   1) Changing top-level category display names:
+   We'll map the original keys (admission, admission_adv, etc.)
+   to new display strings (College Admission, etc.).
+*/
+const renameCategory = {
+  "admission": "College Admission",
+  "admission_adv": "Counterintuitive Admission",
+  "election": "Presidential Election",
+  "preference": "Personality Prediction",
+  "shoe": "Shoe Sales"
+};
+/**************************************************
+ * 1) Define your multi-level categories object.
+ *    EXACTLY match the Task values in your CSVs.
  *    Now tasks use underscores, not slashes.
  **************************************************/
 const categories = {
@@ -323,6 +340,7 @@ const renameModel = {
   "DeepSeek": "DeepSeek-R1-Distill-Llama-70B-local"
 };
 
+
 //------------------------------------------------------------
 // BUILD THE NESTED CHECKBOX UI
 //------------------------------------------------------------
@@ -340,6 +358,9 @@ function buildNestedUI() {
     const topDiv = document.createElement('div');
     topDiv.className = 'category-block';
 
+    // get new display name from renameCategory
+    const displayCatName = renameCategory[topCat] || topCat;
+
     // 2) Top-level checkbox
     const topLabel = document.createElement('label');
     const topCheckbox = document.createElement('input');
@@ -349,7 +370,7 @@ function buildNestedUI() {
     topCheckbox.checked = true;
 
     topLabel.appendChild(topCheckbox);
-    topLabel.appendChild(document.createTextNode(' ' + topCat));
+    topLabel.appendChild(document.createTextNode(' ' + displayCatName));
     topDiv.appendChild(topLabel);
 
     // 3) Sub-level container
@@ -487,15 +508,13 @@ function loadCSV(file, callback) {
 
 function filterByTasks(data, selectedTasks) {
   if (!selectedTasks || selectedTasks.length === 0) {
-    // If everything is checked by default, no tasks => maybe show all?
-    // But user wants an empty => no tasks. Let's keep this or revert.
     return [];
   }
   const allowed = new Set(selectedTasks);
   return data.filter(row => allowed.has(row.Task));
 }
 
-// (OPTIONAL) rename method or model for display
+// rename method/model/task for display
 function prettyMethod(method) {
   return renameMethod[method] || method;
 }
@@ -538,26 +557,22 @@ function aggregateData(rows) {
   });
 }
 
-// We declare table up top
-// Reuse it in renderTable
-
 function renderTable(data) {
   if (table) {
     table.destroy();
     $('#leaderboard').empty();
   }
 
-  // Build table data array
   const tableData = data.map(row => {
-    // rename for display
     const displayModel = prettyModel(row.Model);
     const displayMethod = prettyMethod(row.Method);
+    // data-expanded = "false" so we can track open/closed state.
     return [
       displayModel,
       displayMethod,
       row.AvgAccuracy,
       row.AvgF1,
-      '<button class="details-btn">View</button>',
+      '<button class="details-btn" data-expanded="false">View</button>',
       JSON.stringify(row.Details)
     ];
   });
@@ -572,21 +587,34 @@ function renderTable(data) {
       { title: 'Details' },
       { title: 'HiddenDetails', visible: false }
     ],
-    order: [[3, 'desc']] // default sort by F1 desc
+    order: [[3, 'desc']]
   });
 
-  // On click 'View', expand row details
   $('#leaderboard tbody').on('click', 'button.details-btn', function() {
     const row = table.row($(this).parents('tr'));
     const details = JSON.parse(row.data()[5]);
-    let html = '<div class="details"><strong>Per-Task Results:</strong><ul>';
-    details.forEach(d => {
-      const displayT = prettyTask(d.Task);
-      html += `<li><strong>${displayT}</strong>: Accuracy=${d.Accuracy}, F1=${d.F1}</li>`;
-    });
-    html += '</ul></div>';
-    $(this).parent().append(html);
-    $(this).remove();
+    // Check if expanded or not
+    const isExpanded = $(this).attr('data-expanded') === 'true';
+
+    if (!isExpanded) {
+      // Expand details
+      let html = '<div class="details"><strong>Per-Task Results:</strong><ul>';
+      details.forEach(d => {
+        const displayT = prettyTask(d.Task);
+        html += `<li><strong>${displayT}</strong>: Accuracy=${d.Accuracy}, F1=${d.F1}</li>`;
+      });
+      html += '</ul></div>';
+      // Insert the details div
+      $(this).parent().append(html);
+      // Mark expanded
+      $(this).attr('data-expanded', 'true');
+      $(this).text('Hide');
+    } else {
+      // Collapse details: remove .details
+      $(this).parent().find('.details').remove();
+      $(this).attr('data-expanded', 'false');
+      $(this).text('View');
+    }
   });
 }
 
