@@ -600,6 +600,10 @@ function updateLeaderboard() {
 // Toggles the entire #task-selector div
 let tasksVisible = false;
 const toggleBtn = document.getElementById('toggleTaskSelectorBtn');
+// On page load, hide the task selector
+document.getElementById('task-selector').style.display = 'none';
+toggleBtn.textContent = 'Show Task Selection';
+
 toggleBtn.addEventListener('click', () => {
   tasksVisible = !tasksVisible;
   document.getElementById('task-selector').style.display = tasksVisible ? 'block' : 'none';
