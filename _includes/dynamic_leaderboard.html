@@ -28,22 +28,36 @@
   .hidden {
     display: none;
   }
+
+  .sub-level-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+
+  .toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+  }
 </style>
 
 <h2>HypoBench Leaderboard</h2>
 
 <!-- Button to collapse/expand the entire task selector -->
-<button id="toggleTaskSelectorBtn" style="margin-bottom: 1em;">Hide Task Selection</button>
+<button id="toggleTaskSelectorBtn" style="margin-bottom: 1em;">Show Task Selection</button>
 
 <p>Select tasks below to filter the aggregated results in real time:</p>
 
 <!-- Container for nested checkboxes -->
-<div id="task-selector" style="margin-bottom: 1em;"></div>
+<div id="task-selector" style="margin-bottom: 1em; display: none;"></div>
 
 <!-- The leaderboard table -->
 <table id="leaderboard" class="display"></table>
 
 <script>
+
 /**************************************************
  * 1) Define your multi-level categories object.
  *    EXACTLY match the Task values in your CSVs.
@@ -340,10 +354,17 @@ const renameModel = {
   "DeepSeek": "DeepSeek-R1-Distill-Llama-70B-local"
 };
 
+// 1) A helper function to create a small toggle button
+function createToggleBtn(initialOpen = true) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'toggle-btn';
+  btn.textContent = initialOpen ? '-' : '+';
+  return btn;
+}
 
-//------------------------------------------------------------
-// BUILD THE NESTED CHECKBOX UI
-//------------------------------------------------------------
+// 2) We'll also rename your buildNestedUI to incorporate sub-level toggles.
+
 function buildNestedUI() {
   const container = document.getElementById('task-selector');
   container.innerHTML = '';
@@ -359,7 +380,7 @@ function buildNestedUI() {
     topDiv.className = 'category-block';
 
     // get new display name from renameCategory
-    const displayCatName = renameCategory[topCat] || topCat;
+    const displayCatName = (typeof renameCategory !== 'undefined' && renameCategory[topCat]) || topCat;
 
     // 2) Top-level checkbox
     const topLabel = document.createElement('label');
@@ -371,21 +392,39 @@ function buildNestedUI() {
 
     topLabel.appendChild(topCheckbox);
     topLabel.appendChild(document.createTextNode(' ' + displayCatName));
-    topDiv.appendChild(topLabel);
 
-    // 3) Sub-level container
+    // We'll allow top-level subContainer to be collapsible as well
+    // but you only asked for sub-level. We'll add an optional toggle at top.
+    // If you want to hide the entire sub-level region for each category.
+
     const subContainer = document.createElement('div');
     subContainer.style.marginLeft = '1em';
 
-    // Each sub-level
+    // a) We'll create a top-level toggle if you want (uncomment if needed):
+    // const topToggle = createToggleBtn(true);
+    // topToggle.addEventListener('click', () => {
+    //   const hidden = subContainer.style.display === 'none';
+    //   subContainer.style.display = hidden ? 'block' : 'none';
+    //   topToggle.textContent = hidden ? '-' : '+';
+    // });
+    // topLabel.insertBefore(topToggle, topCheckbox);
+
+    topDiv.appendChild(topLabel);
+    // 3) Sub-level container
+
     if (subLevels && typeof subLevels === 'object') {
       for (const levelName in subLevels) {
         const tasks = subLevels[levelName];
-
         const levelDiv = document.createElement('div');
         levelDiv.className = 'sub-block';
 
-        // sub-level checkbox
+        // We'll create a sub-level header containing the expand/collapse button plus the checkbox label.
+        const levelHeader = document.createElement('div');
+        levelHeader.className = 'sub-level-header';
+
+        const levelToggle = createToggleBtn(true); // default expanded
+        levelHeader.appendChild(levelToggle);
+
         const levelLabel = document.createElement('label');
         const levelCheckbox = document.createElement('input');
         levelCheckbox.type = 'checkbox';
@@ -395,11 +434,14 @@ function buildNestedUI() {
 
         levelLabel.appendChild(levelCheckbox);
         levelLabel.appendChild(document.createTextNode(' ' + levelName));
-        levelDiv.appendChild(levelLabel);
+        levelHeader.appendChild(levelLabel);
+
+        levelDiv.appendChild(levelHeader);
 
         // tasks container
         const tasksDiv = document.createElement('div');
         tasksDiv.style.marginLeft = '1em';
+        levelDiv.appendChild(tasksDiv);
 
         // build each task checkbox
         if (Array.isArray(tasks)) {
@@ -412,11 +454,15 @@ function buildNestedUI() {
             // default check
             tcb.checked = true;
 
-            // display name can remain raw or you can do renameTask[taskName] ?? taskName
-            const displayName = renameTask[taskName] || taskName;
+            if (typeof renameTask !== 'undefined') {
+              const displayName = renameTask[taskName] || taskName;
+              taskLabel.appendChild(tcb);
+              taskLabel.appendChild(document.createTextNode(' ' + displayName));
+            } else {
+              taskLabel.appendChild(tcb);
+              taskLabel.appendChild(document.createTextNode(' ' + taskName));
+            }
 
-            taskLabel.appendChild(tcb);
-            taskLabel.appendChild(document.createTextNode(' ' + displayName));
             tasksDiv.appendChild(taskLabel);
 
             // If user toggles an individual task
@@ -428,8 +474,12 @@ function buildNestedUI() {
           });
         }
 
-        levelDiv.appendChild(tasksDiv);
-        subContainer.appendChild(levelDiv);
+        // sub-level expand/collapse logic
+        levelToggle.addEventListener('click', () => {
+          const hidden = tasksDiv.style.display === 'none';
+          tasksDiv.style.display = hidden ? 'block' : 'none';
+          levelToggle.textContent = hidden ? '-' : '+';
+        });
 
         // If user toggles the sub-level
         levelCheckbox.addEventListener('change', e => {
@@ -440,6 +490,8 @@ function buildNestedUI() {
           syncCheckbox(topCheckbox, subContainer);
           updateLeaderboard();
         });
+
+        subContainer.appendChild(levelDiv);
       }
     }
 
@@ -457,7 +509,10 @@ function buildNestedUI() {
   }
 }
 
-// HELPER: Mark parent as checked/unchecked/indeterminate
+/**********************************************
+ * Keep the rest of your aggregator code below
+ **********************************************/
+
 function syncCheckbox(parentCheckbox, container) {
   const boxes = container.querySelectorAll('input[type=checkbox]');
   const allChecked = Array.from(boxes).every(b => b.checked);
@@ -474,7 +529,6 @@ function syncCheckbox(parentCheckbox, container) {
   }
 }
 
-// Gather all tasks that are checked
 function getSelectedTasks() {
   const container = document.getElementById('task-selector');
   // sub-level -> tasks
@@ -488,16 +542,12 @@ function getSelectedTasks() {
   return tasks;
 }
 
-//------------------------------------------------------------
-// 4) LOAD CSV FILES + DATATABLE
-//------------------------------------------------------------
 function loadCSV(file, callback) {
   Papa.parse(file, {
     download: true,
     header: true,
     skipEmptyLines: true,
     complete: function(results) {
-      // Insert 'Model' from filename, e.g. 'GPT', 'Llama'
       results.data.forEach(row => {
         row.Model = file.split('_')[0].replace('{{ site.baseurl }}/assets/data/', '');
       });
@@ -514,15 +564,14 @@ function filterByTasks(data, selectedTasks) {
   return data.filter(row => allowed.has(row.Task));
 }
 
-// rename method/model/task for display
 function prettyMethod(method) {
-  return renameMethod[method] || method;
+  return typeof renameMethod !== 'undefined' ? (renameMethod[method] || method) : method;
 }
 function prettyModel(model) {
-  return renameModel[model] || model;
+  return typeof renameModel !== 'undefined' ? (renameModel[model] || model) : model;
 }
 function prettyTask(task) {
-  return renameTask[task] || task;
+  return typeof renameTask !== 'undefined' ? (renameTask[task] || task) : task;
 }
 
 function aggregateData(rows) {
@@ -566,7 +615,6 @@ function renderTable(data) {
   const tableData = data.map(row => {
     const displayModel = prettyModel(row.Model);
     const displayMethod = prettyMethod(row.Method);
-    // data-expanded = "false" so we can track open/closed state.
     return [
       displayModel,
       displayMethod,
@@ -593,24 +641,18 @@ function renderTable(data) {
   $('#leaderboard tbody').on('click', 'button.details-btn', function() {
     const row = table.row($(this).parents('tr'));
     const details = JSON.parse(row.data()[5]);
-    // Check if expanded or not
     const isExpanded = $(this).attr('data-expanded') === 'true';
-
     if (!isExpanded) {
-      // Expand details
       let html = '<div class="details"><strong>Per-Task Results:</strong><ul>';
       details.forEach(d => {
         const displayT = prettyTask(d.Task);
         html += `<li><strong>${displayT}</strong>: Accuracy=${d.Accuracy}, F1=${d.F1}</li>`;
       });
       html += '</ul></div>';
-      // Insert the details div
       $(this).parent().append(html);
-      // Mark expanded
       $(this).attr('data-expanded', 'true');
       $(this).text('Hide');
     } else {
-      // Collapse details: remove .details
       $(this).parent().find('.details').remove();
       $(this).attr('data-expanded', 'false');
       $(this).text('View');
@@ -625,12 +667,11 @@ function updateLeaderboard() {
   renderTable(aggregated);
 }
 
-// Toggles the entire #task-selector div
 let tasksVisible = false;
 const toggleBtn = document.getElementById('toggleTaskSelectorBtn');
-// On page load, hide the task selector
-document.getElementById('task-selector').style.display = 'none';
-toggleBtn.textContent = 'Show Task Selection';
+
+// On page load, hide the task selector (done in HTML: style="display: none;")
+// so the user sees the table first.
 
 toggleBtn.addEventListener('click', () => {
   tasksVisible = !tasksVisible;
@@ -649,13 +690,11 @@ function initLeaderboard() {
       allData.push(...rows);
       loadedCount++;
       if (loadedCount === csvFiles.length) {
-        // Everything loaded => show aggregated with all tasks selected
         updateLeaderboard();
       }
     });
   });
 }
 
-// Start
 initLeaderboard();
 </script>
