@@ -11,6 +11,28 @@
   .details { margin-top: 1em; }
   .sub-level-header { display: flex; align-items: center; gap: 0.5em; }
   .toggle-btn { background: none; border: none; cursor: pointer; font-size: 1em; font-weight: bold; }
+  
+  /* Toggle switch styles */
+  .metrics-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0 20px;
+    gap: 10px;
+  }
+  .metrics-toggle button {
+    padding: 8px 15px;
+    border: 1px solid #ccc;
+    background: #f8f8f8;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+  .metrics-toggle button.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
 </style>
 
 <h2>HypoBench Leaderboard</h2>
@@ -20,6 +42,12 @@
 <button id="toggleTaskSelectorBtn" style="margin-bottom: 1em;">Show Task Selection</button>
 <p>Select tasks below to filter the aggregated results in real time:</p>
 <div id="task-selector" style="margin-bottom: 1em; display: none;"></div>
+
+<div class="metrics-toggle">
+  <button id="hdrMetricsBtn" class="active">HDR Metrics</button>
+  <button id="accMetricsBtn">Accuracy Metrics</button>
+</div>
+
 <table id="leaderboard" class="display"></table>
 
 <script>
@@ -151,7 +179,8 @@ function getSelectedTasks() {
     .map(b => b.value);
 }
 
-let allData = [], table = null;
+let allAccData = [], allHdrData = [], table = null, currentMode = 'hdr';
+
 function loadCSV(path, callback) {
   Papa.parse(path, {
     download: true,
@@ -173,7 +202,7 @@ function filterData(data, selectedTasks) {
   return data.filter(row => allowed.has(row.Task));
 }
 
-function aggregateData(rows) {
+function aggregateAccData(rows) {
   const map = new Map();
   rows.forEach(r => {
     const key = r.Model + '||' + r.Method;
@@ -194,7 +223,30 @@ function aggregateData(rows) {
   }));
 }
 
-function renderTable(data) {
+function aggregateHdrData(rows) {
+  const map = new Map();
+  rows.forEach(r => {
+    const key = r.Model + '||' + r.Method;
+    if (!map.has(key)) {
+      map.set(key, { Model: r.Model, Method: r.Method, FDR: [], RC: [], HDR: [], Details: [] });
+    }
+    const entry = map.get(key);
+    entry.FDR.push(parseFloat(r.FDR));
+    entry.RC.push(parseFloat(r.RC));
+    entry.HDR.push(parseFloat(r.HDR));
+    entry.Details.push({ Task: r.Task, FDR: r.FDR, RC: r.RC, HDR: r.HDR });
+  });
+  return Array.from(map.values()).map(e => ({
+    Model: e.Model,
+    Method: e.Method,
+    AvgFDR: (e.FDR.reduce((a, b) => a + b, 0) / e.FDR.length).toFixed(2),
+    AvgRC: (e.RC.reduce((a, b) => a + b, 0) / e.RC.length).toFixed(2),
+    AvgHDR: (e.HDR.reduce((a, b) => a + b, 0) / e.HDR.length).toFixed(2),
+    Details: e.Details
+  }));
+}
+
+function renderAccTable(data) {
   if (table) {
     table.destroy();
     $('#leaderboard').empty();
@@ -239,8 +291,59 @@ function renderTable(data) {
   });
 }
 
+function renderHdrTable(data) {
+  if (table) {
+    table.destroy();
+    $('#leaderboard').empty();
+  }
+  const tableData = data.map(row => [
+    renameModel[row.Model] || row.Model,
+    renameMethod[row.Method] || row.Method,
+    row.AvgFDR,
+    row.AvgRC,
+    row.AvgHDR,
+    '<button class="details-btn" data-expanded="false">View</button>',
+    JSON.stringify(row.Details)
+  ]);
+  table = $('#leaderboard').DataTable({
+    data: tableData,
+    columns: [
+      { title: 'Model' },
+      { title: 'Method' },
+      { title: 'Avg FDR' },
+      { title: 'Avg RC' },
+      { title: 'Avg HDR' },
+      { title: 'Details' },
+      { title: 'HiddenDetails', visible: false }
+    ],
+    order: [[4, 'desc']]
+  });
+
+  $('#leaderboard tbody').off('click').on('click', 'button.details-btn', function () {
+    const row = table.row($(this).parents('tr'));
+    const details = JSON.parse(row.data()[6]);
+    const expanded = $(this).attr('data-expanded') === 'true';
+    if (!expanded) {
+      let html = '<div class="details"><ul>';
+      details.forEach(d => {
+        html += `<li><strong>${renameTask[d.Task] || d.Task}</strong>: FDR=${d.FDR}, RC=${d.RC}, HDR=${d.HDR}</li>`;
+      });
+      html += '</ul></div>';
+      $(this).parent().append(html);
+      $(this).attr('data-expanded', 'true').text('Hide');
+    } else {
+      $(this).parent().find('.details').remove();
+      $(this).attr('data-expanded', 'false').text('View');
+    }
+  });
+}
+
 function updateLeaderboard() {
-  renderTable(aggregateData(filterData(allData, getSelectedTasks())));
+  if (currentMode === 'acc') {
+    renderAccTable(aggregateAccData(filterData(allAccData, getSelectedTasks())));
+  } else {
+    renderHdrTable(aggregateHdrData(filterData(allHdrData, getSelectedTasks())));
+  }
 }
 
 let visible = false;
@@ -250,14 +353,47 @@ document.getElementById('toggleTaskSelectorBtn').addEventListener('click', () =>
   document.getElementById('toggleTaskSelectorBtn').textContent = visible ? 'Hide Task Selection' : 'Show Task Selection';
 });
 
+// Add event listeners for metric toggle buttons
+document.getElementById('accMetricsBtn').addEventListener('click', function() {
+  if (currentMode !== 'acc') {
+    currentMode = 'acc';
+    document.getElementById('accMetricsBtn').classList.add('active');
+    document.getElementById('hdrMetricsBtn').classList.remove('active');
+    updateLeaderboard();
+  }
+});
+
+document.getElementById('hdrMetricsBtn').addEventListener('click', function() {
+  if (currentMode !== 'hdr') {
+    currentMode = 'hdr';
+    document.getElementById('hdrMetricsBtn').classList.add('active');
+    document.getElementById('accMetricsBtn').classList.remove('active');
+    updateLeaderboard();
+  }
+});
+
 function initLeaderboard() {
   buildNestedUI();
-  let loadedCount = 0;
+  let accLoadedCount = 0;
+  let hdrLoadedCount = 0;
+  
+  // Load accuracy data
   csvFiles_acc.forEach(file => {
     loadCSV(file, data => {
-      allData.push(...data);
-      loadedCount++;
-      if (loadedCount === csvFiles_acc.length) {
+      allAccData.push(...data);
+      accLoadedCount++;
+      if (accLoadedCount === csvFiles_acc.length && hdrLoadedCount === csvFiles_hdr.length) {
+        updateLeaderboard();
+      }
+    });
+  });
+  
+  // Load HDR data
+  csvFiles_hdr.forEach(file => {
+    loadCSV(file, data => {
+      allHdrData.push(...data);
+      hdrLoadedCount++;
+      if (accLoadedCount === csvFiles_acc.length && hdrLoadedCount === csvFiles_hdr.length) {
         updateLeaderboard();
       }
     });
