@@ -317,14 +317,14 @@ function renderAccTable(data) {
     columns: [
       { title: 'Model' },
       { title: 'Method' },
-      { title: 'OOD Accuracy' },
-      { title: 'OOD F1' },
-      { title: 'IND Accuracy' },
-      { title: 'IND F1' },
+      { title: 'OOD Accuracy (%)' },
+      { title: 'OOD F1 (%)' },
+      { title: 'IND Accuracy (%)' },
+      { title: 'IND F1 (%)' },
       { title: 'Details' },
       { title: 'HiddenDetails', visible: false }
     ],
-    order: [[3, 'desc']]
+    order: [[2, 'desc']]  // Sort by OOD Accuracy instead of OOD F1
   });
 
   $('#leaderboard tbody').off('click').on('click', 'button.details-btn', function () {
@@ -374,7 +374,7 @@ function renderNpcTable(data) {
       { title: 'Details' },
       { title: 'HiddenDetails', visible: false }
     ],
-    order: [[3, 'desc']]
+    order: [[2, 'desc']]  // Sort by Novelty instead of Plausibility
   });
 
   $('#leaderboard tbody').off('click').on('click', 'button.details-btn', function () {

@@ -239,9 +239,9 @@ function aggregateHdrData(rows) {
   return Array.from(map.values()).map(e => ({
     Model: e.Model,
     Method: e.Method,
-    AvgFDR: (e.FDR.reduce((a, b) => a + b, 0) / e.FDR.length).toFixed(2),
-    AvgRC: (e.RC.reduce((a, b) => a + b, 0) / e.RC.length).toFixed(2),
-    AvgHDR: (e.HDR.reduce((a, b) => a + b, 0) / e.HDR.length).toFixed(2),
+    AvgFDR: (e.FDR.reduce((a, b) => a + b, 0) / e.FDR.length * 100).toFixed(1) + '%',
+    AvgRC: (e.RC.reduce((a, b) => a + b, 0) / e.RC.length * 100).toFixed(1) + '%',
+    AvgHDR: (e.HDR.reduce((a, b) => a + b, 0) / e.HDR.length * 100).toFixed(1) + '%',
     Details: e.Details
   }));
 }
@@ -264,8 +264,8 @@ function renderAccTable(data) {
     columns: [
       { title: 'Model' },
       { title: 'Method' },
-      { title: 'Avg Accuracy' },
-      { title: 'Avg F1' },
+      { title: 'Avg Accuracy (%)' },
+      { title: 'Avg F1 (%)' },
       { title: 'Details' },
       { title: 'HiddenDetails', visible: false }
     ],
@@ -310,9 +310,9 @@ function renderHdrTable(data) {
     columns: [
       { title: 'Model' },
       { title: 'Method' },
-      { title: 'Avg FDR' },
-      { title: 'Avg RC' },
-      { title: 'Avg HDR' },
+      { title: 'Avg FDR (%)' },,
+      { title: 'Avg RC (%)' },
+      { title: 'Avg HDR (%)' },
       { title: 'Details' },
       { title: 'HiddenDetails', visible: false }
     ],
@@ -326,7 +326,7 @@ function renderHdrTable(data) {
     if (!expanded) {
       let html = '<div class="details"><ul>';
       details.forEach(d => {
-        html += `<li><strong>${renameTask[d.Task] || d.Task}</strong>: FDR=${d.FDR}, RC=${d.RC}, HDR=${d.HDR}</li>`;
+        html += `<li><strong>${renameTask[d.Task] || d.Task}</strong>: FDR=${(parseFloat(d.FDR) * 100).toFixed(1)}%, RC=${(parseFloat(d.RC) * 100).toFixed(1)}%, HDR=${(parseFloat(d.HDR) * 100).toFixed(1)}%</li>`;
       });
       html += '</ul></div>';
       $(this).parent().append(html);
