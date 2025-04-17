@@ -40,4 +40,4 @@ HypoBench evaluates three core capabilities necessary for effective hypothesis g
 2. **Abstraction and communication**: Expressing hypotheses in clear, understandable language
 3. **Synthesis**: Integrating new observations with existing knowledge
 
-For more details on our evaluation methodology, please refer to our [paper](https://arxiv.org/abs/paper-link).
+For more details on our evaluation methodology, please refer to our [paper](https://arxiv.org/abs/2504.11524).

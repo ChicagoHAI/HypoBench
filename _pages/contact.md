@@ -15,5 +15,5 @@ For more information, visit the [Chicago Human+AI Lab](https://chicagohai.github
 
 ## Code Repository
 
-The code for HypoBench is available on our [GitHub repository](https://github.com/chicagohai/hypobench).
+The code for HypoBench is available on our [GitHub repository](https://github.com/ChicagoHAI/HypoBench-code/tree/main).
 

@@ -12,7 +12,7 @@ HypoBench is a systematic and principled benchmark designed to evaluate the hypo
 
 HypoBench provides a comprehensive framework for assessing how well models can generate plausible hypotheses that explain observed phenomena. Our benchmark:
 
-- Combines real-world and synthetic datasets across multiple domains
+- Combines real-world and synthetic datasets across 12 domains and 194 datasets
 - Evaluates multiple dimensions of hypothesis quality, with emphasis on explanatory power
 - Enables systematic comparison between different methods and models
 
@@ -41,4 +41,4 @@ Our experiments have revealed several important insights:
 
 HypoBench is an ongoing project aimed at advancing hypothesis generation capabilities in AI systems. We welcome contributions and feedback from the research community.
 
-For more details, please refer to our [paper](https://arxiv.org/abs/paper-link).
+For more details, please refer to our [paper](https://arxiv.org/abs/2504.11524).

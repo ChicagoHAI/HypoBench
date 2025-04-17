@@ -9,7 +9,7 @@ name: HypoBench
 author: Haokun Liu
 
 # Short bio or description (displayed in the header)
-description: A benchmark for hypothesis generation methods
+description: Towards Systematic and Principled Benchmarking for Hypothesis Generation
 
 # URL of your avatar or profile pic (you could use your GitHub profile pic)
 avatar: /images/chai.jpg
