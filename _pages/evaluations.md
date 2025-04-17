@@ -4,13 +4,40 @@ permalink: /evaluations/
 title: Evaluation Methods
 ---
 
-### Utility-driven Evaluation
-We evaluate the generated hypotheses by assessing how well they help language models make predictions on various classification tasks. The hypotheses are used to guide the models in making predictions, and the performance (accuracy) of the models is measured to determine the utility of the hypotheses.
+## Evaluating Hypothesis Generation
 
-- **Classification Tasks**: We use the hypotheses to help language models make predictions on test examples. After seeing all the generated hypotheses, The models first identify the most relevant hypotheses for each example and then use those hypotheses to make a prediction.
-- **Data Splits**: We test on both in-distribution (IND) datasets and out-of-distribution (OOD) datasets. This helps us understand how well the hypotheses generalize to new scenarios.
+HypoBench focuses on evaluating hypothesis generation capabilities through multiple dimensions:
 
-The focus of our evaluation is on how well the hypotheses perform in unfamiliar or new contexts, as this reflects their ability to generalize beyond the data they were generated from.
+### Explanatory Power
 
-### Ground Truth Hypothesis Discovery 
-For the synthetic datasets, we evaluate the generated hypotheses by comparing them to the ground truth hypotheses. We measure the similarity between the generated hypotheses and the ground truth hypotheses to determine how well the hypothesis generation methods can discover the true underlying patterns in the data.
+The primary focus of our evaluation is on the explanatory power of generated hypotheses:
+
+#### Utility-driven Evaluation
+We evaluate how well the generated hypotheses help language models make accurate predictions:
+
+- **Classification Tasks**: Hypotheses are used to guide models in making predictions on test examples.
+- **Data Splits**: We test on both in-distribution (IND) datasets and out-of-distribution (OOD) datasets to assess generalization.
+- **Metric**: Classification accuracy and F1 scores.
+
+#### Ground Truth Hypothesis Discovery Rate (HDR)
+For synthetic datasets where we know the true underlying hypotheses:
+
+- We measure how well generated hypotheses recover the ground-truth hypotheses.
+- This includes both feature discovery (identifying relevant factors) and relationship correctness (understanding how these factors relate to outcomes).
+
+### Interestingness
+
+We provide preliminary metrics for hypothesis "interestingness" - how novel and valuable a hypothesis might be:
+
+- For real-world datasets, we use LLM-based qualitative assessments.
+- This helps capture aspects beyond pure explanatory power.
+
+## Key Capabilities Benchmarked
+
+HypoBench evaluates three core capabilities necessary for effective hypothesis generation:
+
+1. **Inductive reasoning**: Proposing possible theories for given observations
+2. **Abstraction and communication**: Expressing hypotheses in clear, understandable language
+3. **Synthesis**: Integrating new observations with existing knowledge
+
+For more details on our evaluation methodology, please refer to our [paper](https://arxiv.org/abs/paper-link).

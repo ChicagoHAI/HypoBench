@@ -4,9 +4,16 @@ title: Contact
 permalink: /contact/
 ---
 
-- Chicago Human + AI lab website: [https://chicagohai.github.io/](https://chicagohai.github.io/)
-- Email: [haokunliu@uchicago.edu](mailto:haokunliu@uchicago.edu)
-- Github: [https://github.com/ChicagoHAI/hypothesis-generation](https://github.com/ChicagoHAI/hypothesis-generation)
-- Bluesky: [https://bsky.app/profile/chicagohai.bsky.social](https://bsky.app/profile/chicagohai.bsky.social)
-- Twitter: [https://x.com/ChicagoHAI](https://x.com/ChicagoHAI)
+# Contact Information
+
+For questions about HypoBench, please contact:
+
+- Haokun Liu: [haokunliu@uchicago.edu](mailto:haokunliu@uchicago.edu)
+- Chenhao Tan: [chenhao@uchicago.edu](mailto:chenhao@uchicago.edu)
+
+For more information, visit the [Chicago Human+AI Lab](https://chicagohai.github.io/).
+
+## Code Repository
+
+The code for HypoBench is available on our [GitHub repository](https://github.com/chicagohai/hypobench).
 
