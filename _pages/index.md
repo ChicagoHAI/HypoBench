@@ -35,9 +35,9 @@ Our experiments have revealed several important insights:
 
 ## Get Started
 
-- [Explore our datasets](/datasets)
-- [Learn about our evaluation methods](/evaluations)
-- [Check the leaderboards](/leaderboard_synth)
+- [Explore our datasets](/HypoBench/datasets)
+- [Learn about our evaluation methods](/HypoBench/evaluations)
+- [Check the leaderboards](/HypoBench/leaderboard_synth)
 
 HypoBench is an ongoing project aimed at advancing hypothesis generation capabilities in AI systems. We welcome contributions and feedback from the research community.
 
