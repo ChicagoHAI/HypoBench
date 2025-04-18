@@ -27,9 +27,9 @@ For synthetic datasets where we know the true underlying hypotheses:
 
 ### Interestingness
 
-We provide preliminary metrics for hypothesis "interestingness" - how novel and valuable a hypothesis might be:
+We provide preliminary metrics for hypothesis "interestingness" - spliting into three dimensions: Novelty, Plausibility, and Clarity, (for real datasets only).
 
-- For real-world datasets, we use LLM-based qualitative assessments.
+- We use LLM-based qualitative assessments.
 - This helps capture aspects beyond pure explanatory power.
 
 ## Key Capabilities Benchmarked
@@ -40,4 +40,4 @@ HypoBench evaluates three core capabilities necessary for effective hypothesis g
 2. **Abstraction and communication**: Expressing hypotheses in clear, understandable language
 3. **Synthesis**: Integrating new observations with existing knowledge
 
-For more details on our evaluation methodology, please refer to our [paper](https://arxiv.org/abs/2504.11524).
+For more details on our evaluation methodology, please refer to our <a href="https://arxiv.org/abs/2504.11524" target="_blank">paper</a>.

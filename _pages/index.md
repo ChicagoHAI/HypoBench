@@ -41,4 +41,4 @@ Our experiments have revealed several important insights:
 
 HypoBench is an ongoing project aimed at advancing hypothesis generation capabilities in AI systems. We welcome contributions and feedback from the research community.
 
-For more details, please refer to our [paper](https://arxiv.org/abs/2504.11524).
+For more details, please refer to our <a href="https://arxiv.org/abs/2504.11524" target="_blank">paper</a>.

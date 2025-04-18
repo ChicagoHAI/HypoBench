@@ -86,5 +86,5 @@ HypoBench includes carefully controlled synthetic datasets at different complexi
 
 The synthetic datasets enable direct evaluation of how well models can recover known ground-truth hypotheses at varying levels of difficulty.
 
-For more detailed information about the datasets and our methodology, please refer to our [paper](https://arxiv.org/abs/2504.11524).
+For more detailed information about the datasets and our methodology, please refer to our <a href="https://arxiv.org/abs/2504.11524" target="_blank">paper</a>.
 
