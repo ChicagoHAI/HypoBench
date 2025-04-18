@@ -4,8 +4,6 @@ permalink: /evaluations/
 title: Evaluation Methods
 ---
 
-## Evaluating Hypothesis Generation
-
 HypoBench focuses on evaluating hypothesis generation capabilities through multiple dimensions:
 
 ### Explanatory Power

@@ -4,14 +4,12 @@ title: Contact
 permalink: /contact/
 ---
 
-# Contact Information
-
 For questions about HypoBench, please contact:
 
 - Haokun Liu: [haokunliu@uchicago.edu](mailto:haokunliu@uchicago.edu)
 - Chenhao Tan: [chenhao@uchicago.edu](mailto:chenhao@uchicago.edu)
 
-For more information, visit the [Chicago Human+AI Lab](https://chicagohai.github.io/).
+For more information, please visit the [Chicago Human+AI Lab official website](https://chicagohai.github.io/).
 
 ## Code Repository
 

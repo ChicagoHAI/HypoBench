@@ -3,8 +3,6 @@ layout: page
 permalink: /
 ---
 
-# HypoBench: Towards Systematic and Principled Benchmarking for Hypothesis Generation
-
 HypoBench is a systematic and principled benchmark designed to evaluate the hypothesis generation capabilities of AI systems, particularly Large Language Models (LLMs).
 
 ## What is HypoBench?
