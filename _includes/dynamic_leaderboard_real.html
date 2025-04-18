@@ -205,9 +205,20 @@ function loadCSV(path, callback) {
     header: true,
     skipEmptyLines: true,
     complete: function(results) {
+      // Convert string values to numbers where appropriate
       results.data.forEach(row => {
         const parts = path.split('/');
         row.Model = parts[parts.length - 1].split('_')[0];
+        
+        // Convert accuracy and F1 values to numbers
+        if (row.OOD_Accuracy || row['OOD Accuracy']) 
+          row.OOD_Accuracy = parseFloat(row.OOD_Accuracy || row['OOD Accuracy']);
+        if (row.OOD_F1 || row['OOD F1']) 
+          row.OOD_F1 = parseFloat(row.OOD_F1 || row['OOD F1']);
+        if (row.IND_Accuracy || row['IND Accuracy']) 
+          row.IND_Accuracy = parseFloat(row.IND_Accuracy || row['IND Accuracy']);
+        if (row.IND_F1 || row['IND F1']) 
+          row.IND_F1 = parseFloat(row.IND_F1 || row['IND F1']);
       });
       callback(results.data);
     }
@@ -236,16 +247,28 @@ function aggregateAccData(rows) {
       });
     }
     const entry = map.get(key);
-    if (r.OOD_Accuracy) entry.OODAccuracy.push(parseFloat(r.OOD_Accuracy));
-    if (r.OOD_F1) entry.OODF1.push(parseFloat(r.OOD_F1));
-    if (r.IND_Accuracy) entry.INDAccuracy.push(parseFloat(r.IND_Accuracy));
-    if (r.IND_F1) entry.INDF1.push(parseFloat(r.IND_F1));
+    
+    // Handle both underscore and space notation in column names
+    const oodAcc = r.OOD_Accuracy !== undefined ? r.OOD_Accuracy : r['OOD Accuracy'];
+    const oodF1 = r.OOD_F1 !== undefined ? r.OOD_F1 : r['OOD F1'];
+    const indAcc = r.IND_Accuracy !== undefined ? r.IND_Accuracy : r['IND Accuracy'];
+    const indF1 = r.IND_F1 !== undefined ? r.IND_F1 : r['IND F1'];
+    
+    if (oodAcc !== undefined && oodAcc !== null && !isNaN(parseFloat(oodAcc))) 
+      entry.OODAccuracy.push(parseFloat(oodAcc));
+    if (oodF1 !== undefined && oodF1 !== null && !isNaN(parseFloat(oodF1))) 
+      entry.OODF1.push(parseFloat(oodF1));
+    if (indAcc !== undefined && indAcc !== null && !isNaN(parseFloat(indAcc))) 
+      entry.INDAccuracy.push(parseFloat(indAcc));
+    if (indF1 !== undefined && indF1 !== null && !isNaN(parseFloat(indF1))) 
+      entry.INDF1.push(parseFloat(indF1));
+    
     entry.Details.push({ 
       Task: r.Task, 
-      OOD_Accuracy: r.OOD_Accuracy,
-      OOD_F1: r.OOD_F1,
-      IND_Accuracy: r.IND_Accuracy,
-      IND_F1: r.IND_F1
+      OOD_Accuracy: oodAcc,
+      OOD_F1: oodF1,
+      IND_Accuracy: indAcc,
+      IND_F1: indF1
     });
   });
   
@@ -275,9 +298,14 @@ function aggregateNpcData(rows) {
       });
     }
     const entry = map.get(key);
-    if (r.Novelty) entry.Novelty.push(parseFloat(r.Novelty));
-    if (r.Plausibility) entry.Plausibility.push(parseFloat(r.Plausibility));
-    if (r.Clarity) entry.Clarity.push(parseFloat(r.Clarity));
+    
+    if (r.Novelty !== undefined && r.Novelty !== null && !isNaN(parseFloat(r.Novelty))) 
+      entry.Novelty.push(parseFloat(r.Novelty));
+    if (r.Plausibility !== undefined && r.Plausibility !== null && !isNaN(parseFloat(r.Plausibility)))
+      entry.Plausibility.push(parseFloat(r.Plausibility));
+    if (r.Clarity !== undefined && r.Clarity !== null && !isNaN(parseFloat(r.Clarity)))
+      entry.Clarity.push(parseFloat(r.Clarity));
+      
     entry.Details.push({ 
       Task: r.Task, 
       Novelty: r.Novelty,
