@@ -39,3 +39,4 @@ HypoBench evaluates three core capabilities necessary for effective hypothesis g
 3. **Synthesis**: Integrating new observations with existing knowledge
 
 For more details on our evaluation methodology, please refer to our <a href="https://arxiv.org/abs/2504.11524" target="_blank">paper</a>.
+For evaluation code, please visit our <a href="https://github.com/ChicagoHAI/HypoBench-code" target="_blank">GitHub repository</a>.
